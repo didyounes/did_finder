@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -17,11 +18,15 @@ import (
 	"github.com/yel-joul/did_finder/internal/sources"
 	"github.com/yel-joul/did_finder/internal/sources/alienvault"
 	"github.com/yel-joul/did_finder/internal/sources/anubis"
+	"github.com/yel-joul/did_finder/internal/sources/bufferover"
 	"github.com/yel-joul/did_finder/internal/sources/certspotter"
+	"github.com/yel-joul/did_finder/internal/sources/commoncrawl"
 	"github.com/yel-joul/did_finder/internal/sources/crtsh"
+	"github.com/yel-joul/did_finder/internal/sources/github"
 	"github.com/yel-joul/did_finder/internal/sources/hackertarget"
 	"github.com/yel-joul/did_finder/internal/sources/rapiddns"
 	"github.com/yel-joul/did_finder/internal/sources/securitytrails"
+	"github.com/yel-joul/did_finder/internal/sources/shodan"
 	"github.com/yel-joul/did_finder/internal/sources/threatcrowd"
 	"github.com/yel-joul/did_finder/internal/sources/urlscan"
 	"github.com/yel-joul/did_finder/internal/sources/virustotal"
@@ -30,16 +35,20 @@ import (
 )
 
 type Runner struct {
-	options *Options
-	stats   *output.Stats
-	outFile *os.File
-	config  *utils.Config
+	options  *Options
+	stats    *output.Stats
+	progress *output.Progress
+	outFile  *os.File
+	config   *utils.Config
 
 	// Collected data for HTML report
 	reportSubdomains []output.SubdomainEntry
 	reportTakeovers  []output.TakeoverEntry
 	reportWAFs       []output.WAFEntry
 	reportCerts      []output.CertEntry
+	reportPorts      []output.PortEntry
+	reportCORS       []output.CORSEntry
+	reportRedirects  []output.RedirectEntry
 }
 
 func NewRunner(options *Options) (*Runner, error) {
@@ -55,10 +64,16 @@ func NewRunner(options *Options) (*Runner, error) {
 		config = &utils.Config{}
 	}
 
+	// Merge resolvers from config if none provided via CLI
+	if len(options.Resolvers) == 0 && len(config.Resolvers) > 0 {
+		options.Resolvers = config.Resolvers
+	}
+
 	r := &Runner{
-		options: options,
-		stats:   output.NewStats(),
-		config:  config,
+		options:  options,
+		stats:    output.NewStats(),
+		progress: output.NewProgress(!options.Silent && !options.JSON),
+		config:   config,
 	}
 
 	if options.OutputFile != "" {
@@ -69,6 +84,9 @@ func NewRunner(options *Options) (*Runner, error) {
 		r.outFile = f
 	}
 
+	// Create output directory
+	os.MkdirAll(options.OutputDir, 0755)
+
 	return r, nil
 }
 
@@ -77,11 +95,17 @@ func (r *Runner) Run() error {
 		defer r.outFile.Close()
 	}
 
-	sourceCount := 11
+	sourceCount := 13
 	if r.config.VirusTotal != "" {
 		sourceCount++
 	}
 	if r.config.SecurityTrails != "" {
+		sourceCount++
+	}
+	if r.config.Shodan != "" {
+		sourceCount++
+	}
+	if r.config.GitHub != "" {
 		sourceCount++
 	}
 
@@ -89,6 +113,12 @@ func (r *Runner) Run() error {
 		output.PrintBanner()
 		output.PrintInfo("Loaded %d passive sources", sourceCount)
 		output.PrintInfo("Targets: %d domain(s)", len(r.options.Domains))
+		if len(r.options.Resolvers) > 0 {
+			output.PrintInfo("Custom resolvers: %d", len(r.options.Resolvers))
+		}
+		if len(r.options.ExcludePatterns) > 0 {
+			output.PrintInfo("Exclude patterns: %s", strings.Join(r.options.ExcludePatterns, ", "))
+		}
 		r.printEnabledFeatures()
 		fmt.Println()
 	}
@@ -108,6 +138,9 @@ func (r *Runner) Run() error {
 	if !r.options.Silent {
 		r.stats.PrintSummary()
 	}
+
+	// Clean up state file on successful completion
+	ClearState()
 
 	return nil
 }
@@ -129,6 +162,10 @@ func (r *Runner) printEnabledFeatures() {
 		{r.options.DNSEnum, "DNS Enumeration"},
 		{r.options.ZoneTransfer, "Zone Transfer"},
 		{r.options.CIDR, "CIDR Reverse DNS"},
+		{r.options.PortScan, "Port Scanning"},
+		{r.options.Screenshot, "Screenshots"},
+		{r.options.CORSCheck, "CORS Checker"},
+		{r.options.RedirectCheck, "Open Redirect Checker"},
 	}
 	var enabled []string
 	for _, f := range features {
@@ -155,6 +192,20 @@ func (r *Runner) runDomain(domain string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.options.Timeout)*time.Second)
 	defer cancel()
 
+	// ── RESUME ──
+	var allSubs map[string]struct{}
+	resumePhase := ""
+	if r.options.Resume {
+		state, err := LoadState()
+		if err == nil && state.Domain == domain {
+			allSubs = MergeSubdomains(state)
+			resumePhase = state.Phase
+			if !r.options.Silent {
+				output.PrintSuccess("Resumed scan with %d previously found subdomains (phase: %s)", len(allSubs), resumePhase)
+			}
+		}
+	}
+
 	// ── WILDCARD ──
 	wildcard := active.NewWildcardDetector()
 	if wildcard.Detect(ctx, domain) && !r.options.Silent {
@@ -162,7 +213,7 @@ func (r *Runner) runDomain(domain string) error {
 	}
 
 	// ── ZONE TRANSFER ──
-	if r.options.ZoneTransfer {
+	if r.options.ZoneTransfer && resumePhase == "" {
 		if !r.options.Silent {
 			output.PrintInfo("Attempting DNS zone transfer...")
 		}
@@ -177,10 +228,21 @@ func (r *Runner) runDomain(domain string) error {
 	}
 
 	// ── PASSIVE ENUM ──
-	allSubs := r.runPassive(ctx, domain, 0)
+	if allSubs == nil || resumePhase == "" || resumePhase == "passive" {
+		passiveSubs := r.runPassive(ctx, domain, 0)
+		if allSubs == nil {
+			allSubs = passiveSubs
+		} else {
+			for sub := range passiveSubs {
+				allSubs[sub] = struct{}{}
+			}
+		}
+		// Checkpoint after passive
+		SaveState(&ScanState{Domain: domain, Subdomains: SubdomainsToSlice(allSubs), Phase: "passive", StartedAt: time.Now()})
+	}
 
 	// ── BRUTEFORCE ──
-	if r.options.Bruteforce {
+	if r.options.Bruteforce && !isPastPhase(resumePhase, "bruteforce") {
 		if !r.options.Silent {
 			output.PrintInfo("Running DNS bruteforce...")
 		}
@@ -202,10 +264,11 @@ func (r *Runner) runDomain(domain string) error {
 		if !r.options.Silent {
 			output.PrintInfo("Bruteforce found %d new subdomains", bruteCount)
 		}
+		SaveState(&ScanState{Domain: domain, Subdomains: SubdomainsToSlice(allSubs), Phase: "bruteforce", StartedAt: time.Now()})
 	}
 
 	// ── CIDR REVERSE DNS ──
-	if r.options.CIDR {
+	if r.options.CIDR && !isPastPhase(resumePhase, "cidr") {
 		if !r.options.Silent {
 			output.PrintInfo("Running CIDR reverse DNS scan...")
 		}
@@ -234,9 +297,15 @@ func (r *Runner) runDomain(domain string) error {
 		allSubs = r.runRecursive(ctx, domain, allSubs)
 	}
 
+	// ── APPLY EXCLUDE PATTERNS ──
 	finalSubdomains := make([]string, 0, len(allSubs))
 	for sub := range allSubs {
-		finalSubdomains = append(finalSubdomains, sub)
+		if !r.isExcluded(sub) {
+			finalSubdomains = append(finalSubdomains, sub)
+		}
+	}
+	if excluded := len(allSubs) - len(finalSubdomains); excluded > 0 && !r.options.Silent {
+		output.PrintInfo("Excluded %d subdomains by pattern", excluded)
 	}
 
 	// ── SCRAPE ──
@@ -264,9 +333,11 @@ func (r *Runner) runDomain(domain string) error {
 		if !r.options.Silent {
 			output.PrintInfo("Grabbing SSL/TLS certificates...")
 		}
+		r.progress.StartPhase("Cert Grab", len(finalSubdomains))
 		certChan := active.GrabCerts(ctx, finalSubdomains, r.options.Threads)
 		var certResults []active.CertResult
 		for cr := range certChan {
+			r.progress.Increment()
 			certResults = append(certResults, cr)
 			r.reportCerts = append(r.reportCerts, output.CertEntry{
 				Subdomain: cr.Subdomain, Subject: cr.Subject,
@@ -276,6 +347,7 @@ func (r *Runner) runDomain(domain string) error {
 				output.PrintWarning("Expired cert: %s (expired %s)", cr.Subdomain, cr.NotAfter)
 			}
 		}
+		r.progress.Done()
 		// Extract SANs for new subdomains
 		sanSubs := active.ExtractSANSubdomains(certResults, domain)
 		var sanNew int
@@ -316,9 +388,11 @@ func (r *Runner) runDomain(domain string) error {
 		if !r.options.Silent {
 			output.PrintInfo("Resolving %d subdomains...", len(finalSubdomains))
 		}
+		r.progress.StartPhase("DNS Resolve", len(finalSubdomains))
 		resolveCtx, resolveCancel := context.WithTimeout(context.Background(), time.Duration(r.options.Timeout)*2*time.Second)
 		liveChan := active.Resolve(resolveCtx, finalSubdomains, r.options.Threads)
 		for sub := range liveChan {
+			r.progress.Increment()
 			if wildcard.Detected() {
 				ips, _ := net.LookupHost(sub)
 				if wildcard.IsWildcard(ips) {
@@ -330,6 +404,7 @@ func (r *Runner) runDomain(domain string) error {
 			r.reportSubdomains = append(r.reportSubdomains, output.SubdomainEntry{Name: sub, Source: "resolved"})
 		}
 		resolveCancel()
+		r.progress.Done()
 		r.stats.SetAlive(len(liveList))
 		if !r.options.Silent {
 			output.PrintSuccess("Found %d alive subdomains out of %d", len(liveList), len(finalSubdomains))
@@ -362,6 +437,26 @@ func (r *Runner) runDomain(domain string) error {
 		r.runWAF(ctx, liveList)
 	}
 
+	// ── PORT SCANNING ──
+	if r.options.PortScan && len(liveList) > 0 {
+		r.runPortScan(ctx, liveList)
+	}
+
+	// ── CORS CHECK ──
+	if r.options.CORSCheck && len(liveList) > 0 {
+		r.runCORSCheck(ctx, liveList)
+	}
+
+	// ── OPEN REDIRECT CHECK ──
+	if r.options.RedirectCheck && len(liveList) > 0 {
+		r.runRedirectCheck(ctx, liveList)
+	}
+
+	// ── SCREENSHOTS ──
+	if r.options.Screenshot && len(liveList) > 0 {
+		r.runScreenshots(ctx, liveList)
+	}
+
 	// ── HTML REPORT ──
 	if r.options.HTMLReport != "" {
 		if !r.options.Silent {
@@ -373,6 +468,9 @@ func (r *Runner) runDomain(domain string) error {
 			TakeoverVulns: r.reportTakeovers,
 			WAFDetections: r.reportWAFs,
 			CertInfos:     r.reportCerts,
+			PortResults:   r.reportPorts,
+			CORSFindings:  r.reportCORS,
+			RedirectFindings: r.reportRedirects,
 			Stats:         r.stats,
 			ScanTime:      time.Now(),
 		}
@@ -400,6 +498,43 @@ func (r *Runner) runDomain(domain string) error {
 	return nil
 }
 
+// ──────────── EXCLUDE ────────────
+
+func (r *Runner) isExcluded(subdomain string) bool {
+	for _, pattern := range r.options.ExcludePatterns {
+		if matchGlob(pattern, subdomain) {
+			return true
+		}
+	}
+	return false
+}
+
+func matchGlob(pattern, s string) bool {
+	// Simple glob matching supporting * wildcard
+	parts := strings.Split(pattern, "*")
+	if len(parts) == 1 {
+		return pattern == s
+	}
+
+	// Check prefix
+	if !strings.HasPrefix(s, parts[0]) {
+		return false
+	}
+	s = s[len(parts[0]):]
+
+	// Check middle parts
+	for i := 1; i < len(parts)-1; i++ {
+		idx := strings.Index(s, parts[i])
+		if idx < 0 {
+			return false
+		}
+		s = s[idx+len(parts[i]):]
+	}
+
+	// Check suffix
+	return strings.HasSuffix(s, parts[len(parts)-1])
+}
+
 // ──────────── PASSIVE ────────────
 
 func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[string]struct{} {
@@ -417,8 +552,12 @@ func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[s
 		&threatcrowd.Source{},
 		&rapiddns.Source{},
 		&urlscan.Source{},
+		&bufferover.Source{},
+		&commoncrawl.Source{},
 		&virustotal.Source{APIKey: r.config.VirusTotal},
 		&securitytrails.Source{APIKey: r.config.SecurityTrails},
+		&shodan.Source{APIKey: r.config.Shodan},
+		&github.Source{APIKey: r.config.GitHub},
 	}
 
 	var wg sync.WaitGroup
@@ -512,10 +651,12 @@ func (r *Runner) runProbe(ctx context.Context, subdomains []string) {
 	if !r.options.Silent {
 		output.PrintInfo("HTTP Probing %d hosts...", len(subdomains))
 	}
+	r.progress.StartPhase("HTTP Probe", len(subdomains))
 	probeChan := active.Probe(ctx, subdomains, r.options.Threads)
 	var probed int
 	for result := range probeChan {
 		probed++
+		r.progress.Increment()
 		techStr := strings.Join(result.Technologies, ",")
 
 		// Update report data
@@ -547,6 +688,7 @@ func (r *Runner) runProbe(ctx context.Context, subdomains []string) {
 			fmt.Println(line)
 		}
 	}
+	r.progress.Done()
 	if !r.options.Silent {
 		output.PrintSuccess("Probed %d web services", probed)
 	}
@@ -601,9 +743,11 @@ func (r *Runner) runTakeover(ctx context.Context, subdomains []string) {
 	if !r.options.Silent {
 		output.PrintInfo("Checking %d subdomains for takeover...", len(subdomains))
 	}
+	r.progress.StartPhase("Takeover Check", len(subdomains))
 	toChan := active.CheckTakeover(ctx, subdomains, r.options.Threads)
 	var vulnCount int
 	for result := range toChan {
+		r.progress.Increment()
 		r.reportTakeovers = append(r.reportTakeovers, output.TakeoverEntry{
 			Subdomain: result.Subdomain, CNAME: result.CNAME,
 			Service: result.Service, Vuln: result.Vulnerable,
@@ -621,6 +765,7 @@ func (r *Runner) runTakeover(ctx context.Context, subdomains []string) {
 				result.Subdomain, result.CNAME, result.Service)
 		}
 	}
+	r.progress.Done()
 	if !r.options.Silent {
 		if vulnCount > 0 {
 			output.PrintSuccess("Found %d potential takeover vulnerabilities!", vulnCount)
@@ -636,8 +781,10 @@ func (r *Runner) runWAF(ctx context.Context, subdomains []string) {
 	if !r.options.Silent {
 		output.PrintInfo("Detecting WAF on %d hosts...", len(subdomains))
 	}
+	r.progress.StartPhase("WAF Detect", len(subdomains))
 	wafChan := active.DetectWAF(ctx, subdomains, r.options.Threads)
 	for result := range wafChan {
+		r.progress.Increment()
 		r.reportWAFs = append(r.reportWAFs, output.WAFEntry{
 			Subdomain: result.Subdomain, WAF: result.WAF, Evidence: result.Evidence,
 		})
@@ -647,6 +794,146 @@ func (r *Runner) runWAF(ctx context.Context, subdomains []string) {
 				output.Colorize(output.Green, result.Subdomain),
 				output.Colorize(output.Yellow, result.WAF))
 		}
+	}
+	r.progress.Done()
+}
+
+// ──────────── PORT SCAN ────────────
+
+func (r *Runner) runPortScan(ctx context.Context, subdomains []string) {
+	if !r.options.Silent {
+		output.PrintInfo("Scanning ports on %d hosts...", len(subdomains))
+	}
+	r.progress.StartPhase("Port Scan", len(subdomains))
+	portChan := active.PortScan(ctx, subdomains, r.options.Threads)
+	var totalOpen int
+	for result := range portChan {
+		r.progress.Increment()
+		totalOpen += len(result.OpenPorts)
+		r.reportPorts = append(r.reportPorts, output.PortEntry{
+			Subdomain: result.Subdomain,
+			OpenPorts: result.OpenPorts,
+		})
+		if !r.options.Silent {
+			portStrs := make([]string, len(result.OpenPorts))
+			for i, p := range result.OpenPorts {
+				portStrs[i] = fmt.Sprintf("%d", p)
+			}
+			fmt.Printf("%s %s → %s\n",
+				output.Colorize(output.Cyan, "[PORTS]"),
+				output.Colorize(output.Green, result.Subdomain),
+				output.Colorize(output.Yellow, strings.Join(portStrs, ",")))
+		}
+	}
+	r.progress.Done()
+	if !r.options.Silent {
+		output.PrintSuccess("Found %d open ports across hosts", totalOpen)
+	}
+}
+
+// ──────────── CORS ────────────
+
+func (r *Runner) runCORSCheck(ctx context.Context, subdomains []string) {
+	if !r.options.Silent {
+		output.PrintInfo("Checking CORS on %d hosts...", len(subdomains))
+	}
+	r.progress.StartPhase("CORS Check", len(subdomains))
+	corsChan := active.CheckCORS(ctx, subdomains, r.options.Threads)
+	var vulnCount int
+	for result := range corsChan {
+		r.progress.Increment()
+		if result.Vulnerable {
+			vulnCount++
+			r.reportCORS = append(r.reportCORS, output.CORSEntry{
+				Subdomain:  result.Subdomain,
+				Origin:     result.Origin,
+				Type:       result.Type,
+				WithCreds:  result.AllowCredentials,
+			})
+			if !r.options.Silent {
+				fmt.Printf("%s %s [%s] Origin: %s\n",
+					output.Colorize(output.Red, "[CORS]"),
+					output.Colorize(output.Green, result.Subdomain),
+					output.Colorize(output.Yellow, result.Type),
+					result.Origin)
+			}
+		}
+	}
+	r.progress.Done()
+	if !r.options.Silent {
+		if vulnCount > 0 {
+			output.PrintSuccess("Found %d CORS misconfigurations!", vulnCount)
+		} else {
+			output.PrintInfo("No CORS misconfigurations found")
+		}
+	}
+}
+
+// ──────────── OPEN REDIRECT ────────────
+
+func (r *Runner) runRedirectCheck(ctx context.Context, subdomains []string) {
+	if !r.options.Silent {
+		output.PrintInfo("Checking open redirects on %d hosts...", len(subdomains))
+	}
+	r.progress.StartPhase("Redirect Check", len(subdomains))
+	redirChan := active.CheckOpenRedirect(ctx, subdomains, r.options.Threads)
+	var vulnCount int
+	for result := range redirChan {
+		r.progress.Increment()
+		vulnCount++
+		r.reportRedirects = append(r.reportRedirects, output.RedirectEntry{
+			Subdomain: result.Subdomain,
+			URL:       result.URL,
+			Parameter: result.Parameter,
+			Location:  result.Location,
+		})
+		if !r.options.Silent {
+			fmt.Printf("%s %s [param=%s] → %s\n",
+				output.Colorize(output.Red, "[REDIRECT]"),
+				output.Colorize(output.Green, result.Subdomain),
+				output.Colorize(output.Yellow, result.Parameter),
+				result.Location)
+		}
+	}
+	r.progress.Done()
+	if !r.options.Silent {
+		if vulnCount > 0 {
+			output.PrintSuccess("Found %d open redirect vulnerabilities!", vulnCount)
+		} else {
+			output.PrintInfo("No open redirects found")
+		}
+	}
+}
+
+// ──────────── SCREENSHOTS ────────────
+
+func (r *Runner) runScreenshots(ctx context.Context, subdomains []string) {
+	if !r.options.Silent {
+		output.PrintInfo("Capturing screenshots of %d hosts...", len(subdomains))
+	}
+	screenshotDir := filepath.Join(r.options.OutputDir, "screenshots")
+	r.progress.StartPhase("Screenshots", len(subdomains))
+	shotChan := active.TakeScreenshots(ctx, subdomains, r.options.Threads, r.options.OutputDir)
+	var captured int
+	for result := range shotChan {
+		r.progress.Increment()
+		if result.Error != "" {
+			if r.options.Verbose && !r.options.Silent {
+				output.PrintWarning("Screenshot: %s", result.Error)
+			}
+			continue
+		}
+		captured++
+		if !r.options.Silent {
+			fmt.Printf("%s %s → %s\n",
+				output.Colorize(output.Cyan, "[SCREENSHOT]"),
+				output.Colorize(output.Green, result.Subdomain),
+				output.Colorize(output.Dim, result.FilePath))
+		}
+	}
+	r.progress.Done()
+	if !r.options.Silent {
+		output.PrintSuccess("Captured %d screenshots → %s", captured, screenshotDir)
 	}
 }
 
@@ -696,4 +983,23 @@ func loadWordlist(path string) []string {
 		}
 	}
 	return words
+}
+
+// isPastPhase checks if the resume phase is past the given phase
+func isPastPhase(resumePhase, phase string) bool {
+	if resumePhase == "" {
+		return false
+	}
+	phases := []string{"passive", "bruteforce", "cidr", "active"}
+	resumeIdx := -1
+	phaseIdx := -1
+	for i, p := range phases {
+		if p == resumePhase {
+			resumeIdx = i
+		}
+		if p == phase {
+			phaseIdx = i
+		}
+	}
+	return resumeIdx >= 0 && phaseIdx >= 0 && resumeIdx > phaseIdx
 }

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Options struct {
@@ -38,8 +39,21 @@ type Options struct {
 	ConfigPath   string
 	All          bool
 
-	// Populated domains
-	Domains []string
+	// v3.0 new features
+	PortScan     bool
+	Screenshot   bool
+	CORSCheck    bool
+	RedirectCheck bool
+	Resume       bool
+	Resolver     string
+	ResolverList string
+	Exclude      string
+	OutputDir    string
+
+	// Populated at runtime
+	Domains      []string
+	Resolvers    []string
+	ExcludePatterns []string
 }
 
 func ParseOptions() *Options {
@@ -73,7 +87,18 @@ func ParseOptions() *Options {
 	flag.BoolVar(&options.CIDR, "cidr", false, "CIDR/reverse DNS discovery")
 	flag.StringVar(&options.HTMLReport, "report", "", "Generate HTML report to file")
 	flag.StringVar(&options.ConfigPath, "config", "", "Path to YAML config file")
-	flag.BoolVar(&options.All, "all", false, "Enable ALL features (resolve+probe+takeover+waf+certs+brute+permute)")
+	flag.BoolVar(&options.All, "all", false, "Enable ALL features")
+
+	// v3.0 new flags
+	flag.BoolVar(&options.PortScan, "ports", false, "Scan top 100 ports on live hosts")
+	flag.BoolVar(&options.Screenshot, "screenshot", false, "Capture screenshots of live web services")
+	flag.BoolVar(&options.CORSCheck, "cors", false, "Check for CORS misconfigurations")
+	flag.BoolVar(&options.RedirectCheck, "redirect", false, "Check for open redirect vulnerabilities")
+	flag.BoolVar(&options.Resume, "resume", false, "Resume a previously interrupted scan")
+	flag.StringVar(&options.Resolver, "r", "", "Custom DNS resolver (e.g. 8.8.8.8)")
+	flag.StringVar(&options.ResolverList, "rL", "", "File containing list of DNS resolvers")
+	flag.StringVar(&options.Exclude, "exclude", "", "Comma-separated patterns to exclude (e.g. *.staging.*,*.dev.*)")
+	flag.StringVar(&options.OutputDir, "oD", "output", "Output directory for screenshots and reports")
 
 	flag.Parse()
 
@@ -86,6 +111,10 @@ func ParseOptions() *Options {
 		options.CertGrab = true
 		options.Bruteforce = true
 		options.Permute = true
+		options.PortScan = true
+		options.CORSCheck = true
+		options.RedirectCheck = true
+		options.DNSEnum = true
 	}
 
 	// Collect domains
@@ -106,6 +135,28 @@ func ParseOptions() *Options {
 		for scanner.Scan() {
 			if line := scanner.Text(); line != "" {
 				options.Domains = append(options.Domains, line)
+			}
+		}
+	}
+
+	// Parse custom resolvers
+	if options.Resolver != "" {
+		options.Resolvers = append(options.Resolvers, options.Resolver)
+	}
+	if options.ResolverList != "" {
+		resolvers, err := readLines(options.ResolverList)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading resolver list: %s\n", err)
+		} else {
+			options.Resolvers = append(options.Resolvers, resolvers...)
+		}
+	}
+
+	// Parse exclude patterns
+	if options.Exclude != "" {
+		for _, p := range strings.Split(options.Exclude, ",") {
+			if p = strings.TrimSpace(p); p != "" {
+				options.ExcludePatterns = append(options.ExcludePatterns, p)
 			}
 		}
 	}

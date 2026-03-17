@@ -29,7 +29,7 @@ func PrintBanner() {
 /_____/_/_____/ /_/ /_/_/ /_/\__,_/\___/_/     
 ` + Reset + `
 ` + Dim + `              Advanced Subdomain Discovery Engine` + Reset + `
-` + Dim + `              v2.0.0 — github.com/yel-joul/did_finder` + Reset + `
+` + Dim + `              v3.0 — github.com/yel-joul/did_finder` + Reset + `
 `
 
 	fmt.Println(banner)
@@ -55,6 +55,3 @@ func PrintFound(subdomain, source string) {
 	fmt.Printf(Green+"%s"+Reset+" "+Dim+"[%s]"+Reset+"\n", subdomain, source)
 }
 
-func PrintFoundPlain(subdomain string) {
-	fmt.Println(subdomain)
-}

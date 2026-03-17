@@ -8,15 +8,18 @@ import (
 	"time"
 )
 
-// HTMLReport generates a beautiful HTML report of the scan results
+// HTMLReportData holds all data for report generation
 type HTMLReportData struct {
-	Domain       string
-	Subdomains   []SubdomainEntry
-	TakeoverVulns []TakeoverEntry
-	WAFDetections []WAFEntry
-	CertInfos     []CertEntry
-	Stats         *Stats
-	ScanTime      time.Time
+	Domain           string
+	Subdomains       []SubdomainEntry
+	TakeoverVulns    []TakeoverEntry
+	WAFDetections    []WAFEntry
+	CertInfos        []CertEntry
+	PortResults      []PortEntry
+	CORSFindings     []CORSEntry
+	RedirectFindings []RedirectEntry
+	Stats            *Stats
+	ScanTime         time.Time
 }
 
 type SubdomainEntry struct {
@@ -49,6 +52,25 @@ type CertEntry struct {
 	Expired   bool
 }
 
+type PortEntry struct {
+	Subdomain string
+	OpenPorts []int
+}
+
+type CORSEntry struct {
+	Subdomain string
+	Origin    string
+	Type      string
+	WithCreds bool
+}
+
+type RedirectEntry struct {
+	Subdomain string
+	URL       string
+	Parameter string
+	Location  string
+}
+
 func GenerateHTMLReport(data HTMLReportData, outputPath string) error {
 	f, err := os.Create(outputPath)
 	if err != nil {
@@ -69,7 +91,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0a0e1
 h1{font-size:2.5rem;background:linear-gradient(135deg,#00f2fe,#4facfe,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem}
 h2{font-size:1.5rem;color:#4facfe;margin:2rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid #1e293b}
 .meta{color:#64748b;margin-bottom:2rem;font-size:0.9rem}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
 .stat-card{background:linear-gradient(135deg,#111827,#1e293b);border:1px solid #374151;border-radius:12px;padding:1.5rem;text-align:center}
 .stat-card .number{font-size:2.5rem;font-weight:700;background:linear-gradient(135deg,#00f2fe,#4facfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .stat-card .label{color:#94a3b8;font-size:0.85rem;margin-top:0.25rem}
@@ -83,6 +105,7 @@ tr:hover td{background:#1a2332}
 .badge-yellow{background:#713f12;color:#fde047}
 .badge-blue{background:#1e3a5f;color:#93c5fd}
 .badge-purple{background:#4c1d95;color:#c4b5fd}
+.badge-orange{background:#7c2d12;color:#fdba74}
 .vuln-alert{background:linear-gradient(135deg,#450a0a,#7f1d1d);border:1px solid #991b1b;border-radius:12px;padding:1rem 1.5rem;margin:0.5rem 0}
 .vuln-alert strong{color:#fca5a5}
 .footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid #1e293b;color:#475569;font-size:0.8rem}
@@ -90,7 +113,7 @@ tr:hover td{background:#1a2332}
 </head>
 <body>
 <div class="container">
-<h1>🔍 did_finder</h1>
+<h1>🔍 did_finder v3.0</h1>
 <p class="meta">Scan Report for <strong>%s</strong> — Generated %s</p>
 
 <div class="stats-grid">
@@ -98,6 +121,9 @@ tr:hover td{background:#1a2332}
 <div class="stat-card"><div class="number">%d</div><div class="label">Takeover Checks</div></div>
 <div class="stat-card"><div class="number">%d</div><div class="label">WAF Detected</div></div>
 <div class="stat-card"><div class="number">%d</div><div class="label">Certificates</div></div>
+<div class="stat-card"><div class="number">%d</div><div class="label">Port Scans</div></div>
+<div class="stat-card"><div class="number">%d</div><div class="label">CORS Vulns</div></div>
+<div class="stat-card"><div class="number">%d</div><div class="label">Open Redirects</div></div>
 </div>
 `
 
@@ -109,6 +135,9 @@ tr:hover td{background:#1a2332}
 		len(data.TakeoverVulns),
 		len(data.WAFDetections),
 		len(data.CertInfos),
+		len(data.PortResults),
+		len(data.CORSFindings),
+		len(data.RedirectFindings),
 	)
 
 	// Takeover section
@@ -132,6 +161,41 @@ tr:hover td{background:#1a2332}
 		fmt.Fprintln(f, `</table>`)
 	}
 
+	// CORS section
+	if len(data.CORSFindings) > 0 {
+		fmt.Fprintln(f, `<h2>🔓 CORS Misconfigurations</h2>`)
+		for _, c := range data.CORSFindings {
+			fmt.Fprintf(f, `<div class="vuln-alert"><strong>CORS:</strong> %s — %s (credentials: %v)</div>`+"\n",
+				html.EscapeString(c.Subdomain), html.EscapeString(c.Type), c.WithCreds)
+		}
+		fmt.Fprintln(f, `<table><tr><th>Subdomain</th><th>Type</th><th>Origin</th><th>Credentials</th></tr>`)
+		for _, c := range data.CORSFindings {
+			creds := `<span class="badge badge-green">No</span>`
+			if c.WithCreds {
+				creds = `<span class="badge badge-red">Yes</span>`
+			}
+			fmt.Fprintf(f, "<tr><td>%s</td><td><span class=\"badge badge-orange\">%s</span></td><td>%s</td><td>%s</td></tr>\n",
+				html.EscapeString(c.Subdomain), html.EscapeString(c.Type),
+				html.EscapeString(c.Origin), creds)
+		}
+		fmt.Fprintln(f, `</table>`)
+	}
+
+	// Open Redirect section
+	if len(data.RedirectFindings) > 0 {
+		fmt.Fprintln(f, `<h2>↪️ Open Redirects</h2>`)
+		for _, r := range data.RedirectFindings {
+			fmt.Fprintf(f, `<div class="vuln-alert"><strong>REDIRECT:</strong> %s — param: %s → %s</div>`+"\n",
+				html.EscapeString(r.Subdomain), html.EscapeString(r.Parameter), html.EscapeString(r.Location))
+		}
+		fmt.Fprintln(f, `<table><tr><th>Subdomain</th><th>Parameter</th><th>Redirect To</th></tr>`)
+		for _, r := range data.RedirectFindings {
+			fmt.Fprintf(f, "<tr><td>%s</td><td><span class=\"badge badge-yellow\">%s</span></td><td>%s</td></tr>\n",
+				html.EscapeString(r.Subdomain), html.EscapeString(r.Parameter), html.EscapeString(r.Location))
+		}
+		fmt.Fprintln(f, `</table>`)
+	}
+
 	// WAF section
 	if len(data.WAFDetections) > 0 {
 		fmt.Fprintln(f, `<h2>🛡️ WAF Detection</h2>`)
@@ -139,6 +203,21 @@ tr:hover td{background:#1a2332}
 		for _, w := range data.WAFDetections {
 			fmt.Fprintf(f, "<tr><td>%s</td><td><span class=\"badge badge-purple\">%s</span></td><td>%s</td></tr>\n",
 				html.EscapeString(w.Subdomain), html.EscapeString(w.WAF), html.EscapeString(w.Evidence))
+		}
+		fmt.Fprintln(f, `</table>`)
+	}
+
+	// Port scan section
+	if len(data.PortResults) > 0 {
+		fmt.Fprintln(f, `<h2>🔌 Open Ports</h2>`)
+		fmt.Fprintln(f, `<table><tr><th>Subdomain</th><th>Open Ports</th><th>Count</th></tr>`)
+		for _, p := range data.PortResults {
+			portStrs := make([]string, len(p.OpenPorts))
+			for i, port := range p.OpenPorts {
+				portStrs[i] = fmt.Sprintf("%d", port)
+			}
+			fmt.Fprintf(f, "<tr><td>%s</td><td>%s</td><td><span class=\"badge badge-blue\">%d</span></td></tr>\n",
+				html.EscapeString(p.Subdomain), html.EscapeString(strings.Join(portStrs, ", ")), len(p.OpenPorts))
 		}
 		fmt.Fprintln(f, `</table>`)
 	}
