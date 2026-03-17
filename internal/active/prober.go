@@ -131,52 +131,124 @@ func probeSingle(ctx context.Context, client *http.Client, subdomain, url string
 
 func detectTechnologies(headers http.Header, body string) []string {
 	var techs []string
+	seen := make(map[string]bool)
+	addTech := func(t string) {
+		if !seen[t] {
+			seen[t] = true
+			techs = append(techs, t)
+		}
+	}
 
 	// Header-based detection
 	powered := headers.Get("X-Powered-By")
 	if powered != "" {
-		techs = append(techs, powered)
+		addTech(powered)
 	}
 
-	server := headers.Get("Server")
-	switch {
-	case strings.Contains(strings.ToLower(server), "nginx"):
-		techs = append(techs, "Nginx")
-	case strings.Contains(strings.ToLower(server), "apache"):
-		techs = append(techs, "Apache")
-	case strings.Contains(strings.ToLower(server), "cloudflare"):
-		techs = append(techs, "Cloudflare")
-	case strings.Contains(strings.ToLower(server), "iis"):
-		techs = append(techs, "IIS")
+	serverLower := strings.ToLower(headers.Get("Server"))
+	serverPatterns := map[string]string{
+		"nginx":         "Nginx",
+		"apache":        "Apache",
+		"cloudflare":    "Cloudflare",
+		"iis":           "IIS",
+		"litespeed":     "LiteSpeed",
+		"openresty":     "OpenResty",
+		"caddy":         "Caddy",
+		"envoy":         "Envoy",
+		"gunicorn":      "Gunicorn",
+		"varnish":       "Varnish",
+		"tengine":       "Tengine",
+		"cowboy":        "Cowboy",
+	}
+	for pattern, tech := range serverPatterns {
+		if strings.Contains(serverLower, pattern) {
+			addTech(tech)
+			break
+		}
+	}
+
+	// Header fingerprints
+	headerMapping := map[string]string{
+		"X-Drupal-Cache":   "Drupal",
+		"X-Generator":      "",
+		"X-Shopify-Stage":  "Shopify",
+		"X-Amz-Cf-Id":     "CloudFront",
+		"X-Vercel-Id":     "Vercel",
+		"X-Netlify-Id":    "Netlify",
+		"Fly-Request-Id":  "Fly.io",
+	}
+	for header, tech := range headerMapping {
+		val := headers.Get(header)
+		if val != "" {
+			if tech != "" {
+				addTech(tech)
+			} else {
+				addTech(val)
+			}
+		}
 	}
 
 	// Body-based detection
 	bodyLower := strings.ToLower(body)
 	techPatterns := map[string]string{
-		"wp-content":          "WordPress",
-		"react":               "React",
-		"angular":             "Angular",
-		"vue.js":              "Vue.js",
-		"next.js":             "Next.js",
-		"jquery":              "jQuery",
-		"bootstrap":           "Bootstrap",
-		"laravel":             "Laravel",
-		"django":              "Django",
-		"express":             "Express",
-		"rails":               "Rails",
-		"__next":              "Next.js",
-		"_nuxt":               "Nuxt.js",
-		"shopify":             "Shopify",
-		"drupal":              "Drupal",
-		"joomla":              "Joomla",
-		"craft cms":           "Craft CMS",
+		"wp-content":                  "WordPress",
+		"wp-includes":                 "WordPress",
+		"react":                       "React",
+		"angular":                     "Angular",
+		"vue.js":                      "Vue.js",
+		"vue.min.js":                  "Vue.js",
+		"next.js":                     "Next.js",
+		"__next":                      "Next.js",
+		"_nuxt":                       "Nuxt.js",
+		"jquery":                      "jQuery",
+		"bootstrap":                   "Bootstrap",
+		"tailwindcss":                 "Tailwind CSS",
+		"laravel":                     "Laravel",
+		"django":                      "Django",
+		"express":                     "Express",
+		"rails":                       "Rails",
+		"shopify":                     "Shopify",
+		"drupal":                      "Drupal",
+		"joomla":                      "Joomla",
+		"craft cms":                   "Craft CMS",
+		"svelte":                      "Svelte",
+		"gatsby":                      "Gatsby",
+		"hugo":                        "Hugo",
+		"ghost":                       "Ghost",
+		"magento":                     "Magento",
+		"woocommerce":                 "WooCommerce",
+		"strapi":                      "Strapi",
+		"contentful":                  "Contentful",
+		"prismic":                     "Prismic",
+		"firebase":                    "Firebase",
+		"supabase":                    "Supabase",
+		"graphql":                     "GraphQL",
+		"swagger-ui":                  "Swagger",
+		"openapi":                     "OpenAPI",
+		"kubernetes":                  "Kubernetes",
+		"docker":                      "Docker",
+		"grafana":                     "Grafana",
+		"jenkins":                     "Jenkins",
+		"gitlab":                      "GitLab",
+		"phpmyadmin":                  "phpMyAdmin",
+		"webpackchunk":                "Webpack",
+		"cloudflare-static":           "Cloudflare",
+		"ember":                       "Ember.js",
+		"backbone":                    "Backbone.js",
+		"amp-":                        "AMP",
+		"recaptcha":                   "reCAPTCHA",
+		"google-analytics":            "Google Analytics",
+		"gtag":                        "Google Tag Manager",
+		"hotjar":                      "Hotjar",
+		"sentry":                      "Sentry",
 	}
 
 	for pattern, tech := range techPatterns {
 		if strings.Contains(bodyLower, pattern) {
-			techs = append(techs, tech)
+			addTech(tech)
 		}
 	}
 
 	return techs
 }
+

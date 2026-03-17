@@ -2,7 +2,6 @@ package active
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -148,10 +147,4 @@ func captureScreenshot(ctx context.Context, chromePath, subdomain, outputDir str
 	}
 
 	return result
-}
-
-// FormatScreenshotResult returns a JSON-friendly representation
-func FormatScreenshotResult(r ScreenshotResult) string {
-	data, _ := json.Marshal(r)
-	return string(data)
 }

@@ -1,139 +1,228 @@
-# did_finder
+<p align="center">
+  <h1 align="center">🔍 did_finder</h1>
+  <p align="center">Advanced Subdomain Discovery Engine — Fast, modular, and feature-rich</p>
+</p>
 
 <p align="center">
-<b>Advanced Subdomain Discovery Engine</b><br>
-<i>Faster. Deeper. Smarter than subfinder.</i>
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#modules">Modules</a>
 </p>
 
 ---
 
-`did_finder` is an elite-tier subdomain enumeration tool written in Go. It combines **11+ passive sources** with powerful **active intelligence modules** — DNS bruteforce, subdomain takeover detection, WAF fingerprinting, SSL/TLS cert analysis, recursive enumeration, and more — all in a single binary.
-
 ## Features
 
-### Passive Sources (11+)
-| Source | Auth Required |
-|--------|:---:|
-| crt.sh | ✗ |
-| HackerTarget | ✗ |
-| AlienVault OTX | ✗ |
-| Wayback Machine | ✗ |
-| CertSpotter | ✗ |
-| AnubisDB | ✗ |
-| ThreatCrowd | ✗ |
-| RapidDNS | ✗ |
-| URLScan | ✗ |
-| VirusTotal | API Key |
-| SecurityTrails | API Key |
+**did_finder** is an advanced subdomain enumeration tool built in Go. It combines **15 passive sources** with **12 active modules** for comprehensive subdomain discovery and security analysis.
 
-### Active Intelligence Modules
-| Module | Flag | Description |
-|--------|------|-------------|
-| DNS Resolution | `-resolve` | Mass resolve subdomains, auto wildcard filtering |
-| HTTP Probing | `-probe` | Status codes, titles, server headers, **technology fingerprinting** |
-| DNS Bruteforce | `-brute` | Built-in 200+ word wordlist targeting modern infra |
-| Subdomain Takeover | `-takeover` | **35+ service fingerprints** (GitHub, S3, Heroku, Azure, Netlify...) |
-| WAF Detection | `-waf` | **15+ WAF signatures** (Cloudflare, AWS, Akamai, Imperva...) |
-| SSL/TLS Certs | `-certs` | Grab certs, extract SANs for hidden subdomains |
-| DNS Enumeration | `-dns-enum` | Full A/AAAA/CNAME/MX/NS/TXT records |
-| Permutations | `-permute` | Smart subdomain permutation engine |
-| Web Scraping | `-scrape` | Crawl live hosts, extract subdomains from HTML/JS |
-| Recursive | `-recursive` | Enumerate subs-of-subs with configurable depth |
-| Zone Transfer | `-zt` | AXFR zone transfer testing |
-| CIDR Reverse DNS | `-cidr` | Reverse DNS scan of the /24 IP range |
-| **All-in-One** | `-all` | Enable resolve + probe + takeover + waf + certs + brute + permute |
+### Passive Sources
+| Source | API Key Required |
+|---|---|
+| crt.sh, HackerTarget, AlienVault OTX, Wayback Machine | ❌ |
+| CertSpotter, Anubis, ThreatCrowd, RapidDNS, URLScan | ❌ |
+| BufferOver, CommonCrawl | ❌ |
+| VirusTotal, SecurityTrails, Shodan, GitHub | ✅ |
 
-### Output & Operations
-| Feature | Flag |
-|---------|------|
-| JSON output | `-json` |
-| CSV output | `-csv` |
-| File output | `-o file` |
-| HTML Report | `-report file.html` |
-| Silent mode | `-silent` |
-| Multi-domain file | `-dL file` |
-| Stdin pipe | `cat domains.txt \| did_finder` |
-| Proxy support | `-proxy socks5://...` |
-| Rate limiting | `-rate N` |
-| Config file | `-config path` |
-| Verbose | `-v` |
-| Threads | `-t N` |
-| Timeout | `-timeout N` |
+### Active Modules
+- 🔍 **DNS Resolution** — Filter alive subdomains
+- 🌐 **HTTP Probing** — Status codes, titles, server headers, tech fingerprinting
+- 💣 **DNS Bruteforce** — Built-in wordlist + custom wordlists
+- 🔄 **Permutations** — Intelligent subdomain permutation
+- 🕸️ **Web Scraping** — Discover subdomains from live page content
+- 🔐 **SSL/TLS Cert Grabbing** — Extract SANs for new subdomains
+- 📡 **DNS Enumeration** — Full record types (A, AAAA, CNAME, MX, TXT)
+- ⚡ **Zone Transfer** — AXFR attempt on nameservers
+- 🌀 **CIDR Reverse DNS** — Reverse lookup across IP ranges
+- 🎯 **Subdomain Takeover** — 35+ service fingerprints
+- 🛡️ **WAF Detection** — 15+ WAF signatures
+- 🔌 **Port Scanning** — Top 100 ports TCP connect scan
+- 🔓 **CORS Misconfiguration** — Reflected origin, null origin, wildcard+creds
+- ↪️ **Open Redirect** — 30+ redirect parameters tested
+- 📸 **Screenshots** — Headless Chrome/Chromium capture
+- 🔁 **Recursive Enumeration** — Configurable depth
+
+### Output & Reporting
+- 📊 **HTML Report** — Beautiful dark-themed report with all findings
+- 📝 **JSON / CSV / Plain** — Machine-readable output formats
+- 💾 **Resume** — Checkpoint and resume interrupted scans
+- 📣 **Webhooks** — Discord & Slack notifications
+- 📈 **Progress Bar** — Real-time scan progress
+
+---
 
 ## Installation
 
+### From Source
+```bash
+go install github.com/yel-joul/did_finder/cmd/did_finder@latest
+```
+
+### Build Locally
 ```bash
 git clone https://github.com/yel-joul/did_finder.git
 cd did_finder
-go build -o did_finder ./cmd/did_finder/
-sudo mv did_finder /usr/local/bin/
+go build -o did_finder ./cmd/did_finder
 ```
+
+---
 
 ## Usage
 
+### Basic
 ```bash
-# Basic passive scan
+# Single domain
 did_finder -d example.com
 
-# Full arsenal scan (the nuclear option)
-did_finder -d example.com -all -v -report report.html
+# Multiple domains from file
+did_finder -dL domains.txt
 
-# Resolve + probe + takeover check
-did_finder -d example.com -resolve -probe -takeover
-
-# Bruteforce + resolve
-did_finder -d example.com -brute -resolve -v
-
-# Deep recursive scan
-did_finder -d example.com -recursive -depth 3 -resolve -probe
-
-# Multiple targets with JSON output
-did_finder -dL targets.txt -resolve -json -o results.jsonl
-
-# Pipe from stdin, output only subs
-cat domains.txt | did_finder -resolve -silent
-
-# Through Tor
-did_finder -d example.com -proxy socks5://127.0.0.1:9050
-
-# Custom bruteforce wordlist
-did_finder -d example.com -brute -w /path/to/wordlist.txt -resolve
+# Pipe from stdin
+echo "example.com" | did_finder
 ```
+
+### Full Scan
+```bash
+# Enable ALL modules
+did_finder -d example.com -all -report report.html
+
+# Custom combination
+did_finder -d example.com -resolve -probe -takeover -cors -ports -v
+```
+
+### Output
+```bash
+# JSON output
+did_finder -d example.com -json -o results.json
+
+# CSV output
+did_finder -d example.com -csv -o results.csv
+
+# Silent mode (subdomains only, great for piping)
+did_finder -d example.com -silent | httpx
+```
+
+### Advanced
+```bash
+# Custom resolvers
+did_finder -d example.com -resolve -r 8.8.8.8
+did_finder -d example.com -resolve -rL resolvers.txt
+
+# Exclude patterns
+did_finder -d example.com -exclude "*.staging.*,*.dev.*"
+
+# Resume interrupted scan
+did_finder -d example.com -all    # Ctrl+C to interrupt
+did_finder -d example.com -all -resume
+
+# Custom wordlist + bruteforce
+did_finder -d example.com -brute -w /path/to/wordlist.txt
+
+# Screenshots (requires Chrome/Chromium)
+did_finder -d example.com -resolve -screenshot -oD ./results
+```
+
+---
+
+## Flags
+
+| Flag | Description | Default |
+|---|---|---|
+| `-d` | Target domain | |
+| `-dL` | File containing domains | |
+| `-t` | Concurrent threads | `30` |
+| `-timeout` | Timeout in seconds | `30` |
+| `-o` | Output file path | |
+| `-oD` | Output directory | `output` |
+| `-v` | Verbose output | `false` |
+| `-silent` | Only print subdomains | `false` |
+| `-json` | JSONL output | `false` |
+| `-csv` | CSV output | `false` |
+| `-all` | Enable all modules | `false` |
+| `-resolve` | DNS resolution | `false` |
+| `-probe` | HTTP probing | `false` |
+| `-brute` | DNS bruteforce | `false` |
+| `-w` | Custom wordlist | |
+| `-permute` | Permutation generation | `false` |
+| `-scrape` | Web scraping | `false` |
+| `-recursive` | Recursive enumeration | `false` |
+| `-depth` | Recursion depth | `2` |
+| `-certs` | SSL/TLS cert grabbing | `false` |
+| `-dns-enum` | DNS record enumeration | `false` |
+| `-zt` | Zone transfer attempt | `false` |
+| `-cidr` | CIDR reverse DNS | `false` |
+| `-takeover` | Subdomain takeover check | `false` |
+| `-waf` | WAF detection | `false` |
+| `-ports` | Port scanning (top 100) | `false` |
+| `-cors` | CORS misconfig check | `false` |
+| `-redirect` | Open redirect check | `false` |
+| `-screenshot` | Screenshot capture | `false` |
+| `-r` | Custom DNS resolver | |
+| `-rL` | Resolver list file | |
+| `-exclude` | Exclude patterns (comma-sep) | |
+| `-resume` | Resume interrupted scan | `false` |
+| `-report` | Generate HTML report | |
+| `-config` | Config file path | |
+| `-proxy` | HTTP/SOCKS5 proxy | |
+| `-nc` | Disable colors | `false` |
+
+---
 
 ## Configuration
 
-Create `~/.config/did_finder/config.yaml`:
+Create `~/.config/did_finder/config.yaml` or `~/.did_finder.yaml`:
 
 ```yaml
-virustotal: "YOUR_VT_API_KEY"
-securitytrails: "YOUR_ST_API_KEY"
+# API Keys
+virustotal: "YOUR_VT_KEY"
+securitytrails: "YOUR_ST_KEY"
+shodan: "YOUR_SHODAN_KEY"
+github: "YOUR_GITHUB_TOKEN"
 
+# Custom resolvers
+resolvers:
+  - "8.8.8.8"
+  - "1.1.1.1"
+  - "9.9.9.9"
+
+# Webhook notifications
 webhook:
   discord: "https://discord.com/api/webhooks/..."
   slack: "https://hooks.slack.com/services/..."
 ```
 
-## Output Examples
+---
 
-### Terminal (colored)
-```
-    ____  _ ____    _____           __
-   / __ \(_) __ \  / __(_)___  ____/ /__  _____
-  / / / / / / / / / /_/ / __ \/ __  / _ \/ ___/
- / /_/ / / /_/ / / __/ / / / / /_/ /  __/ /
-/_____/_/_____/ /_/ /_/_/ /_/\__,_/\___/_/
+## Modules
 
-[INF] Loaded 11 passive sources
-[INF] Active modules: DNS Resolution, HTTP Probing, Takeover Detection, WAF Detection
-api.example.com [hackertarget]
-dev.example.com [anubisdb]
-[TAKEOVER] old.example.com → old.example.com.s3.amazonaws.com (AWS S3) [POTENTIALLY VULNERABLE]
-[WAF] api.example.com → Cloudflare
-```
+### Subdomain Takeover Detection
+Checks 35+ services including: GitHub Pages, Heroku, AWS S3, Azure, Shopify, Fastly, Netlify, Vercel, Cloudflare, and more.
 
-### HTML Report
-Beautiful dark-themed report with gradient cards, vulnerability alerts, and per-source statistics. Generated with `-report output.html`.
+### WAF Detection
+Identifies 15+ WAFs: Cloudflare, AWS WAF/CloudFront, Akamai, Sucuri, Imperva, ModSecurity, F5 BIG-IP, Barracuda, FortiWeb, and more.
+
+### Technology Fingerprinting
+Detects frameworks and technologies from HTTP headers and body content: WordPress, React, Angular, Vue.js, Next.js, Laravel, Django, Rails, and more.
+
+### CORS Misconfiguration
+Tests for:
+- **Reflected Origin** — Server reflects attacker origin
+- **Null Origin** — Server allows `null` origin
+- **Wildcard + Credentials** — `*` with `Access-Control-Allow-Credentials: true`
+- **Prefix Bypass** — Bypass via `evil-target.com`
+
+### Open Redirect
+Tests 30+ common redirect parameters (`url`, `redirect`, `next`, `dest`, `return_to`, etc.)
+
+---
 
 ## License
 
-MIT
+MIT License
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/yel-joul">yel-joul</a>
+</p>

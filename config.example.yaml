@@ -1,0 +1,21 @@
+# did_finder Configuration
+# Place at: ~/.config/did_finder/config.yaml or ~/.did_finder.yaml
+
+# API Keys (optional — enables additional passive sources)
+virustotal: ""
+securitytrails: ""
+shodan: ""
+github: ""
+
+# Custom DNS resolvers (optional)
+resolvers:
+  - "8.8.8.8"
+  - "8.8.4.4"
+  - "1.1.1.1"
+  - "1.0.0.1"
+  - "9.9.9.9"
+
+# Webhook notifications (optional)
+webhook:
+  discord: ""
+  slack: ""
