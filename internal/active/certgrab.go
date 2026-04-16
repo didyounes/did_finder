@@ -5,9 +5,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
-	"strings"
 	"sync"
 	"time"
+
+	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 // CertResult holds SSL certificate information
@@ -97,9 +98,8 @@ func ExtractSANSubdomains(certResults []CertResult, domain string) []string {
 	unique := make(map[string]struct{})
 	for _, cr := range certResults {
 		for _, san := range cr.SANs {
-			san = strings.ToLower(san)
-			san = strings.TrimPrefix(san, "*.")
-			if strings.HasSuffix(san, domain) && san != "" {
+			san = utils.NormalizeHostname(san)
+			if utils.BelongsToDomain(san, domain) {
 				unique[san] = struct{}{}
 			}
 		}

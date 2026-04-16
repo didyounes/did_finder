@@ -18,6 +18,10 @@ type HTMLReportData struct {
 	PortResults      []PortEntry
 	CORSFindings     []CORSEntry
 	RedirectFindings []RedirectEntry
+	VulnFindings     []VulnEntry
+	CurlResults      []CurlEntry
+	AIAnalysis       string
+	AIModel          string
 	Stats            *Stats
 	ScanTime         time.Time
 }
@@ -71,6 +75,28 @@ type RedirectEntry struct {
 	Location  string
 }
 
+type VulnEntry struct {
+	Target     string
+	TemplateID string
+	Name       string
+	Severity   string
+	Type       string
+	MatchedAt  string
+	Tags       string
+	CVEs       string
+}
+
+type CurlEntry struct {
+	Target       string
+	EffectiveURL string
+	Status       int
+	ContentType  string
+	RemoteIP     string
+	Redirects    int
+	TimeTotal    float64
+	Error        string
+}
+
 func GenerateHTMLReport(data HTMLReportData, outputPath string) error {
 	f, err := os.Create(outputPath)
 	if err != nil {
@@ -108,6 +134,7 @@ tr:hover td{background:#1a2332}
 .badge-orange{background:#7c2d12;color:#fdba74}
 .vuln-alert{background:linear-gradient(135deg,#450a0a,#7f1d1d);border:1px solid #991b1b;border-radius:12px;padding:1rem 1.5rem;margin:0.5rem 0}
 .vuln-alert strong{color:#fca5a5}
+.ai-analysis{background:#101826;border:1px solid #334155;border-radius:12px;padding:1rem 1.25rem;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.9rem;color:#dbeafe}
 .footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid #1e293b;color:#475569;font-size:0.8rem}
 </style>
 </head>
@@ -124,6 +151,8 @@ tr:hover td{background:#1a2332}
 <div class="stat-card"><div class="number">%d</div><div class="label">Port Scans</div></div>
 <div class="stat-card"><div class="number">%d</div><div class="label">CORS Vulns</div></div>
 <div class="stat-card"><div class="number">%d</div><div class="label">Open Redirects</div></div>
+<div class="stat-card"><div class="number">%d</div><div class="label">Nuclei Findings</div></div>
+<div class="stat-card"><div class="number">%d</div><div class="label">Curl Fingerprints</div></div>
 </div>
 `
 
@@ -138,6 +167,8 @@ tr:hover td{background:#1a2332}
 		len(data.PortResults),
 		len(data.CORSFindings),
 		len(data.RedirectFindings),
+		len(data.VulnFindings),
+		len(data.CurlResults),
 	)
 
 	// Takeover section
@@ -222,6 +253,58 @@ tr:hover td{background:#1a2332}
 		fmt.Fprintln(f, `</table>`)
 	}
 
+	// Nuclei vulnerability section
+	if len(data.VulnFindings) > 0 {
+		fmt.Fprintln(f, `<h2>🧪 Nuclei Vulnerability Findings</h2>`)
+		for _, v := range data.VulnFindings {
+			if strings.EqualFold(v.Severity, "critical") || strings.EqualFold(v.Severity, "high") {
+				fmt.Fprintf(f, `<div class="vuln-alert"><strong>%s:</strong> %s — %s</div>`+"\n",
+					html.EscapeString(strings.ToUpper(v.Severity)), html.EscapeString(v.Target), html.EscapeString(v.Name))
+			}
+		}
+		fmt.Fprintln(f, `<table><tr><th>Severity</th><th>Target</th><th>Name</th><th>Template</th><th>CVEs</th><th>Tags</th></tr>`)
+		for _, v := range data.VulnFindings {
+			color := "badge-blue"
+			switch strings.ToLower(v.Severity) {
+			case "critical", "high":
+				color = "badge-red"
+			case "medium":
+				color = "badge-yellow"
+			case "low":
+				color = "badge-green"
+			}
+			fmt.Fprintf(f, "<tr><td><span class=\"badge %s\">%s</span></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n",
+				color, html.EscapeString(strings.ToUpper(v.Severity)),
+				html.EscapeString(v.Target), html.EscapeString(v.Name),
+				html.EscapeString(v.TemplateID), html.EscapeString(v.CVEs),
+				html.EscapeString(v.Tags))
+		}
+		fmt.Fprintln(f, `</table>`)
+	}
+
+	// Curl fingerprint section
+	if len(data.CurlResults) > 0 {
+		fmt.Fprintln(f, `<h2>🧵 Curl Fingerprints</h2>`)
+		fmt.Fprintln(f, `<table><tr><th>Target</th><th>Effective URL</th><th>Status</th><th>Type</th><th>Remote IP</th><th>Redirects</th><th>Total Time</th><th>Error</th></tr>`)
+		for _, c := range data.CurlResults {
+			statusBadge := ""
+			if c.Status > 0 {
+				color := "badge-green"
+				if c.Status >= 400 {
+					color = "badge-red"
+				} else if c.Status >= 300 {
+					color = "badge-yellow"
+				}
+				statusBadge = fmt.Sprintf(`<span class="badge %s">%d</span>`, color, c.Status)
+			}
+			fmt.Fprintf(f, "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%.3fs</td><td>%s</td></tr>\n",
+				html.EscapeString(c.Target), html.EscapeString(c.EffectiveURL), statusBadge,
+				html.EscapeString(c.ContentType), html.EscapeString(c.RemoteIP),
+				c.Redirects, c.TimeTotal, html.EscapeString(c.Error))
+		}
+		fmt.Fprintln(f, `</table>`)
+	}
+
 	// Subdomains table
 	fmt.Fprintln(f, `<h2>📋 Discovered Subdomains</h2>`)
 	fmt.Fprintln(f, `<table><tr><th>Subdomain</th><th>Source</th><th>IPs</th><th>Status</th><th>Title</th><th>Technologies</th></tr>`)
@@ -257,6 +340,16 @@ tr:hover td{background:#1a2332}
 				html.EscapeString(c.Issuer), c.SANCount, status)
 		}
 		fmt.Fprintln(f, `</table>`)
+	}
+
+	// Local AI analysis
+	if data.AIAnalysis != "" {
+		title := "Local AI Analysis"
+		if data.AIModel != "" {
+			title = "Local AI Analysis - " + data.AIModel
+		}
+		fmt.Fprintf(f, `<h2>🤖 %s</h2>`+"\n", html.EscapeString(title))
+		fmt.Fprintf(f, `<div class="ai-analysis">%s</div>`+"\n", html.EscapeString(data.AIAnalysis))
 	}
 
 	// Source breakdown

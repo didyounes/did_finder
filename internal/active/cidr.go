@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"strings"
+
+	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 // ReverseDNSFromCIDR performs reverse DNS lookups on IP ranges found for the domain
@@ -41,11 +43,10 @@ func ReverseDNSFromCIDR(ctx context.Context, domain string, threads int) ([]stri
 			}
 
 			for _, name := range names {
-				name = strings.TrimSuffix(name, ".")
-				nameLower := strings.ToLower(name)
+				nameLower := utils.NormalizeHostname(name)
 
 				// Only keep names that belong to our target domain
-				if strings.HasSuffix(nameLower, domain) {
+				if utils.BelongsToDomain(nameLower, domain) {
 					if _, exists := seen[nameLower]; !exists {
 						seen[nameLower] = struct{}{}
 						results = append(results, nameLower)

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/yel-joul/did_finder/internal/sources"
+	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 type Source struct{}
@@ -61,8 +62,8 @@ func (s *Source) Run(ctx context.Context, domain string, results chan sources.Re
 		}
 
 		// Extract hostname from URL
-		host := extractHost(entry.URL)
-		if host != "" && strings.HasSuffix(host, domain) {
+		host := utils.NormalizeHostname(extractHost(entry.URL))
+		if utils.BelongsToDomain(host, domain) {
 			if _, exists := seen[host]; !exists {
 				seen[host] = struct{}{}
 				results <- sources.Result{Source: s.Name(), Value: host}

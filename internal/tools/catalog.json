@@ -1,0 +1,2432 @@
+[
+  {
+    "category": "Subdomain Enumeration",
+    "name": "Sublist3r",
+    "url": "https://github.com/aboul3la/Sublist3r",
+    "description": "Fast subdomains enumeration tool for penetration testers"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "Amass",
+    "url": "https://github.com/OWASP/Amass",
+    "description": "In-depth Attack Surface Mapping and Asset Discovery"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "massdns",
+    "url": "https://github.com/blechschmidt/massdns",
+    "description": "A high-performance DNS stub resolver for bulk lookups and reconnaissance (subdomain enumeration)"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "Findomain",
+    "url": "https://github.com/Findomain/Findomain",
+    "description": "The fastest and cross-platform subdomain enumerator, do not waste your time."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "Sudomy",
+    "url": "https://github.com/Screetsec/Sudomy",
+    "description": "Sudomy is a subdomain enumeration tool to collect subdomains and analyzing domains performing automated reconnaissance (recon) for bug hunting / pentesting"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "chaos-client",
+    "url": "https://github.com/projectdiscovery/chaos-client",
+    "description": "Go client to communicate with Chaos DNS API."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "domained",
+    "url": "https://github.com/TypeError/domained",
+    "description": "Multi Tool Subdomain Enumeration"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "bugcrowd-levelup-subdomain-enumeration",
+    "url": "https://github.com/appsecco/bugcrowd-levelup-subdomain-enumeration",
+    "description": "This repository contains all the material from the talk \"Esoteric sub-domain enumeration techniques\" given at Bugcrowd LevelUp 2017 virtual conference"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "shuffledns",
+    "url": "https://github.com/projectdiscovery/shuffledns",
+    "description": "shuffleDNS is a wrapper around massdns written in go that allows you to enumerate valid subdomains using active bruteforce as well as resolve subdomains with wildcard handling and easy input-output\u2026"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "puredns",
+    "url": "https://github.com/d3mondev/puredns",
+    "description": "Fast domain resolver and subdomain bruteforcing with accurate wildcard filtering with wildcard(*)"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "censys-subdomain-finder",
+    "url": "https://github.com/christophetd/censys-subdomain-finder",
+    "description": "Perform subdomain enumeration using the certificate transparency logs from Censys."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "Turbolist3r",
+    "url": "https://github.com/fleetcaptain/Turbolist3r",
+    "description": "Subdomain enumeration tool with analysis features for discovered domains"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "censys-enumeration",
+    "url": "https://github.com/0xbharath/censys-enumeration",
+    "description": "A script to extract subdomains/emails for a given domain using SSL/TLS certificate dataset on Censys"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "tugarecon",
+    "url": "https://github.com/LordNeoStark/tugarecon",
+    "description": "Fast subdomains enumeration tool for penetration testers."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "as3nt",
+    "url": "https://github.com/cinerieus/as3nt",
+    "description": "Another Subdomain ENumeration Tool"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "Subra",
+    "url": "https://github.com/si9int/Subra",
+    "description": "A Web-UI for subdomain enumeration (subfinder)"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "Substr3am",
+    "url": "https://github.com/nexxai/Substr3am",
+    "description": "Passive reconnaissance/enumeration of interesting targets by watching for SSL certificates being issued"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "domain",
+    "url": "https://github.com/jhaddix/domain/",
+    "description": "enumall.py Setup script for Regon-ng"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "altdns",
+    "url": "https://github.com/infosec-au/altdns",
+    "description": "Generates permutations, alterations and mutations of subdomains and then resolves them"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "brutesubs",
+    "url": "https://github.com/anshumanbh/brutesubs",
+    "description": "An automation framework for running multiple open sourced subdomain bruteforcing tools (in parallel) using your own wordlists via Docker Compose"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "dns-parallel-prober",
+    "url": "https://github.com/lorenzog/dns-parallel-prober",
+    "description": "his is a parallelised domain name prober to find as many subdomains of a given domain as fast as possible."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "dnscan",
+    "url": "https://github.com/rbsec/dnscan",
+    "description": "dnscan is a python wordlist-based DNS subdomain scanner."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "knock",
+    "url": "https://github.com/guelfoweb/knock",
+    "description": "Knockpy is a python tool designed to enumerate subdomains on a target domain through a wordlist."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "hakrevdns",
+    "url": "https://github.com/hakluke/hakrevdns",
+    "description": "Small, fast tool for performing reverse DNS lookups en masse."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "dnsx",
+    "url": "https://github.com/projectdiscovery/dnsx",
+    "description": "Dnsx is a fast and multi-purpose DNS toolkit allow to run multiple DNS queries of your choice with a list of user-supplied resolvers."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "subfinder",
+    "url": "https://github.com/projectdiscovery/subfinder",
+    "description": "Subfinder is a subdomain discovery tool that discovers valid subdomains for websites."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "assetfinder",
+    "url": "https://github.com/tomnomnom/assetfinder",
+    "description": "Find domains and subdomains related to a given domain"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "crtndstry",
+    "url": "https://github.com/nahamsec/crtndstry",
+    "description": "Yet another subdomain finder"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "VHostScan",
+    "url": "https://github.com/codingo/VHostScan",
+    "description": "A virtual host scanner that performs reverse lookups"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "scilla",
+    "url": "https://github.com/edoardottt/scilla",
+    "description": "Information Gathering tool - DNS / Subdomains / Ports / Directories enumeration"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "sub3suite",
+    "url": "https://github.com/3nock/sub3suite",
+    "description": "A research-grade suite of tools for subdomain enumeration, intelligence gathering and attack surface mapping."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "cero",
+    "url": "https://github.com/glebarez/cero",
+    "description": "Scrape domain names from SSL certificates of arbitrary hosts"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "shosubgo",
+    "url": "https://github.com/incogbyte/shosubgo",
+    "description": "Small tool to Grab subdomains using Shodan api"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "haktrails",
+    "url": "https://github.com/hakluke/haktrails",
+    "description": "Golang client for querying SecurityTrails API data"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "bbot",
+    "url": "https://github.com/blacklanternsecurity/bbot",
+    "description": "A recursive internet scanner for hackers"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "crt.go",
+    "url": "https://github.com/TaurusOmar/crt.sh",
+    "description": "This Go script simplifies the process of efficiently saving and analyzing subdomain output from the crt.sh website."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "github-subdomains",
+    "url": "https://github.com/gwen001/github-subdomains",
+    "description": "This Go tool performs searches on GitHub and parses the results to find subdomains of a given domain."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "gitlab-subdomains",
+    "url": "https://github.com/gwen001/gitlab-subdomains",
+    "description": "This Go tool performs searches on GitLab and parses the results to find subdomains of a given domain."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "subdominator",
+    "url": "https://github.com/RevoltSecurities/Subdominator",
+    "description": "Fast and powerfull to enumerate subdomains (50+ passive results )."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "csprecon",
+    "url": "https://github.com/edoardottt/csprecon",
+    "description": "Discover new target domains using Content Security Policy"
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "related-domains",
+    "url": "https://github.com/gwen001/related-domains",
+    "description": "Find related domains of a given domain. this tool search for domains that have been registered by the same peoples/companies."
+  },
+  {
+    "category": "Subdomain Enumeration",
+    "name": "hakip2host",
+    "url": "https://github.com/hakluke/hakip2host",
+    "description": "hakip2host takes a list of IP addresses via stdin, then does a series of checks to return associated domain names."
+  },
+  {
+    "category": "Port Scanning",
+    "name": "masscan",
+    "url": "https://github.com/robertdavidgraham/masscan",
+    "description": "TCP port scanner, spews SYN packets asynchronously, scanning entire Internet in under 5 minutes."
+  },
+  {
+    "category": "Port Scanning",
+    "name": "RustScan",
+    "url": "https://github.com/RustScan/RustScan",
+    "description": "The Modern Port Scanner"
+  },
+  {
+    "category": "Port Scanning",
+    "name": "naabu",
+    "url": "https://github.com/projectdiscovery/naabu",
+    "description": "A fast port scanner written in go with focus on reliability and simplicity."
+  },
+  {
+    "category": "Port Scanning",
+    "name": "nmap",
+    "url": "https://github.com/nmap/nmap",
+    "description": "Nmap - the Network Mapper. Github mirror of official SVN repository."
+  },
+  {
+    "category": "Port Scanning",
+    "name": "sandmap",
+    "url": "https://github.com/trimstray/sandmap",
+    "description": "Nmap on steroids. Simple CLI with the ability to run pure Nmap engine, 31 modules with 459 scan profiles."
+  },
+  {
+    "category": "Port Scanning",
+    "name": "ScanCannon",
+    "url": "https://github.com/johnnyxmas/ScanCannon",
+    "description": "Combines the speed of masscan with the reliability and detailed enumeration of nmap"
+  },
+  {
+    "category": "Port Scanning",
+    "name": "nrich",
+    "url": "https://gitlab.com/shodan-public/nrich",
+    "description": "A command-line tool to quickly analyze all IPs in a file and see which ones have open ports/ vulnerabilities."
+  },
+  {
+    "category": "Port Scanning",
+    "name": "NimScan",
+    "url": "https://github.com/elddy/NimScan/",
+    "description": "Fast Port Scanner \ud83d\ude80"
+  },
+  {
+    "category": "Screenshots",
+    "name": "EyeWitness",
+    "url": "https://github.com/FortyNorthSecurity/EyeWitness",
+    "description": "EyeWitness is designed to take screenshots of websites, provide some server header info, and identify default credentials if possible."
+  },
+  {
+    "category": "Screenshots",
+    "name": "aquatone",
+    "url": "https://github.com/michenriksen/aquatone",
+    "description": "Aquatone is a tool for visual inspection of websites across a large amount of hosts and is convenient for quickly gaining an overview of HTTP-based attack surface."
+  },
+  {
+    "category": "Screenshots",
+    "name": "screenshoteer",
+    "url": "https://github.com/vladocar/screenshoteer",
+    "description": "Make website screenshots and mobile emulations from the command line."
+  },
+  {
+    "category": "Screenshots",
+    "name": "gowitness",
+    "url": "https://github.com/sensepost/gowitness",
+    "description": "gowitness - a golang, web screenshot utility using Chrome Headless"
+  },
+  {
+    "category": "Screenshots",
+    "name": "WitnessMe",
+    "url": "https://github.com/byt3bl33d3r/WitnessMe",
+    "description": "Web Inventory tool, takes screenshots of webpages using Pyppeteer (headless Chrome/Chromium) and provides some extra bells & whistles to make life easier."
+  },
+  {
+    "category": "Screenshots",
+    "name": "eyeballer",
+    "url": "https://github.com/BishopFox/eyeballer",
+    "description": "Convolutional neural network for analyzing pentest screenshots"
+  },
+  {
+    "category": "Screenshots",
+    "name": "scrying",
+    "url": "https://github.com/nccgroup/scrying",
+    "description": "A tool for collecting RDP, web and VNC screenshots all in one place"
+  },
+  {
+    "category": "Screenshots",
+    "name": "Depix",
+    "url": "https://github.com/beurtschipper/Depix",
+    "description": "Recovers passwords from pixelized screenshots"
+  },
+  {
+    "category": "Screenshots",
+    "name": "httpscreenshot",
+    "url": "https://github.com/breenmachine/httpscreenshot/",
+    "description": "HTTPScreenshot is a tool for grabbing screenshots and HTML of large numbers of websites."
+  },
+  {
+    "category": "Technologies",
+    "name": "wappalyzer",
+    "url": "https://github.com/AliasIO/wappalyzer",
+    "description": "Identify technology on websites."
+  },
+  {
+    "category": "Technologies",
+    "name": "webanalyze",
+    "url": "https://github.com/rverton/webanalyze",
+    "description": "Port of Wappalyzer (uncovers technologies used on websites) to automate mass scanning."
+  },
+  {
+    "category": "Technologies",
+    "name": "python-builtwith",
+    "url": "https://github.com/claymation/python-builtwith",
+    "description": "BuiltWith API client"
+  },
+  {
+    "category": "Technologies",
+    "name": "whatweb",
+    "url": "https://github.com/urbanadventurer/whatweb",
+    "description": "Next generation web scanner"
+  },
+  {
+    "category": "Technologies",
+    "name": "retire.js",
+    "url": "https://github.com/RetireJS/retire.js",
+    "description": "scanner detecting the use of JavaScript libraries with known vulnerabilities"
+  },
+  {
+    "category": "Technologies",
+    "name": "httpx",
+    "url": "https://github.com/projectdiscovery/httpx",
+    "description": "httpx is a fast and multi-purpose HTTP toolkit allows to run multiple probers using retryablehttp library, it is designed to maintain the result reliability with increased threads."
+  },
+  {
+    "category": "Technologies",
+    "name": "fingerprintx",
+    "url": "https://github.com/praetorian-inc/fingerprintx",
+    "description": "fingerprintx is a standalone utility for service discovery on open ports that works well with other popular bug bounty command line tools."
+  },
+  {
+    "category": "Technologies",
+    "name": "graphw00f",
+    "url": "https://github.com/dolevf/graphw00f",
+    "description": "graphw00f is GraphQL Server Engine Fingerprinting utility for software security professionals looking to learn more about what technology is behind a given GraphQL endpoint."
+  },
+  {
+    "category": "Technologies",
+    "name": "wafw00f",
+    "url": "https://github.com/EnableSecurity/wafw00f",
+    "description": "wafw00f allows one to identify and fingerprint Web Application Firewall (WAF) products protecting a website."
+  },
+  {
+    "category": "Technologies",
+    "name": "cdncheck",
+    "url": "https://github.com/projectdiscovery/cdncheck",
+    "description": "cdncheck is a tool for identifying the technology associated with dns / ip network addresses."
+  },
+  {
+    "category": "Technologies",
+    "name": "tlsx",
+    "url": "https://github.com/projectdiscovery/tlsx",
+    "description": "A fast and configurable TLS grabber focused on TLS based data collection and analysis."
+  },
+  {
+    "category": "Technologies",
+    "name": "MurMurHash",
+    "url": "https://github.com/Viralmaniar/MurMurHash",
+    "description": "This little tool is to calculate a MurmurHash value of a favicon. This favicon hash can be used to look for similar websites on various search engines."
+  },
+  {
+    "category": "Content Discovery",
+    "name": "gobuster",
+    "url": "https://github.com/OJ/gobuster",
+    "description": "Directory/File, DNS and VHost busting tool written in Go"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "recursebuster",
+    "url": "https://github.com/C-Sto/recursebuster",
+    "description": "rapid content discovery tool for recursively querying webservers, handy in pentesting and web application assessments"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "feroxbuster",
+    "url": "https://github.com/epi052/feroxbuster",
+    "description": "A fast, simple, recursive content discovery tool written in Rust."
+  },
+  {
+    "category": "Content Discovery",
+    "name": "dirsearch",
+    "url": "https://github.com/maurosoria/dirsearch",
+    "description": "Web path scanner"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "dirsearch",
+    "url": "https://github.com/evilsocket/dirsearch",
+    "description": "A Go implementation of dirsearch."
+  },
+  {
+    "category": "Content Discovery",
+    "name": "filebuster",
+    "url": "https://github.com/henshin/filebuster",
+    "description": "An extremely fast and flexible web fuzzer"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "dirstalk",
+    "url": "https://github.com/stefanoj3/dirstalk",
+    "description": "Modern alternative to dirbuster/dirb"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "dirbuster-ng",
+    "url": "https://github.com/digination/dirbuster-ng",
+    "description": "dirbuster-ng is C CLI implementation of the Java dirbuster tool"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "gospider",
+    "url": "https://github.com/jaeles-project/gospider",
+    "description": "Gospider - Fast web spider written in Go"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "hakrawler",
+    "url": "https://github.com/hakluke/hakrawler",
+    "description": "Simple, fast web crawler designed for easy, quick discovery of endpoints and assets within a web application"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "crawley",
+    "url": "https://github.com/s0rg/crawley",
+    "description": "fast, feature-rich unix-way web scraper/crawler written in Golang."
+  },
+  {
+    "category": "Content Discovery",
+    "name": "katana",
+    "url": "https://github.com/projectdiscovery/katana",
+    "description": "A next-generation crawling and spidering framework"
+  },
+  {
+    "category": "Content Discovery",
+    "name": "kiterunner",
+    "url": "https://github.com/assetnote/kiterunner",
+    "description": "Fast API endpoint bruteforcer and content discovery tool for modern web applications."
+  },
+  {
+    "category": "Content Discovery",
+    "name": "vaf",
+    "url": "https://github.com/andreiverse/vaf",
+    "description": "Vaf is a cross-platform very advanced and fast web fuzzer written in nim ."
+  },
+  {
+    "category": "Content Discovery",
+    "name": "uncover",
+    "url": "https://github.com/projectdiscovery/uncover",
+    "description": "uncover is a go wrapper using APIs of well known search engines to quickly discover exposed hosts on the internet."
+  },
+  {
+    "category": "Content Filtering",
+    "name": "Hacker-Scoper",
+    "url": "https://github.com/ItsIgnacioPortal/Hacker-Scoper",
+    "description": "CLI tool for filtering a mixed list of targets (URLs/IPs) according to the bug-bounty program's scope. The scope can be supplied manually, or it can also be detected automatically by just giving hacker-scoper the name of the targeted company. Hacker-Scoper supports IPs, URLs, wildcards, CIDR ranges, Nmap octet ranges, and even full Regex scopes."
+  },
+  {
+    "category": "Links",
+    "name": "LinkFinder",
+    "url": "https://github.com/GerbenJavado/LinkFinder",
+    "description": "A python script that finds endpoints in JavaScript files"
+  },
+  {
+    "category": "Links",
+    "name": "JS-Scan",
+    "url": "https://github.com/zseano/JS-Scan",
+    "description": "a .js scanner, built in php. designed to scrape urls and other info"
+  },
+  {
+    "category": "Links",
+    "name": "LinksDumper",
+    "url": "https://github.com/arbazkiraak/LinksDumper",
+    "description": "Extract (links/possible endpoints) from responses & filter them via decoding/sorting"
+  },
+  {
+    "category": "Links",
+    "name": "GoLinkFinder",
+    "url": "https://github.com/0xsha/GoLinkFinder",
+    "description": "A fast and minimal JS endpoint extractor"
+  },
+  {
+    "category": "Links",
+    "name": "BurpJSLinkFinder",
+    "url": "https://github.com/InitRoot/BurpJSLinkFinder",
+    "description": "Burp Extension for a passive scanning JS files for endpoint links."
+  },
+  {
+    "category": "Links",
+    "name": "urlgrab",
+    "url": "https://github.com/IAmStoxe/urlgrab",
+    "description": "A golang utility to spider through a website searching for additional links."
+  },
+  {
+    "category": "Links",
+    "name": "waybackurls",
+    "url": "https://github.com/tomnomnom/waybackurls",
+    "description": "Fetch all the URLs that the Wayback Machine knows about for a domain"
+  },
+  {
+    "category": "Links",
+    "name": "gau",
+    "url": "https://github.com/lc/gau",
+    "description": "Fetch known URLs from AlienVault's Open Threat Exchange, the Wayback Machine, and Common Crawl."
+  },
+  {
+    "category": "Links",
+    "name": "getJS",
+    "url": "https://github.com/003random/getJS",
+    "description": "A tool to fastly get all javascript sources/files"
+  },
+  {
+    "category": "Links",
+    "name": "linx",
+    "url": "https://github.com/riza/linx",
+    "description": "Reveals invisible links within JavaScript files"
+  },
+  {
+    "category": "Links",
+    "name": "waymore",
+    "url": "https://github.com/xnl-h4ck3r/waymore",
+    "description": "Find way more from the Wayback Machine!"
+  },
+  {
+    "category": "Links",
+    "name": "xnLinkFinder",
+    "url": "https://github.com/xnl-h4ck3r/xnLinkFinder",
+    "description": "A python tool used to discover endpoints, potential parameters, and a target specific wordlist for a given target"
+  },
+  {
+    "category": "Links",
+    "name": "URLFinder",
+    "url": "https://github.com/projectdiscovery/urlfinder",
+    "description": "A high-speed tool for passively gathering URLs, optimized for efficient web asset discovery without active scanning."
+  },
+  {
+    "category": "Links",
+    "name": "github-endpoints",
+    "url": "https://github.com/gwen001/github-endpoints",
+    "description": "This Go tool performs searches on GitHub and parses the results to find endpoints of a given domain."
+  },
+  {
+    "category": "Links",
+    "name": "jsleak",
+    "url": "https://github.com/byt3hx/jsleak",
+    "description": "jsleak is a tool to find secret , paths or links in JavaScript files or source code."
+  },
+  {
+    "category": "Links",
+    "name": "jsfinder",
+    "url": "https://github.com/kacakb/jsfinder",
+    "description": "A tool that scans web pages to find JavaScript file URLs linked in the HTML source code."
+  },
+  {
+    "category": "Links",
+    "name": "jsluice",
+    "url": "https://github.com/BishopFox/jsluice",
+    "description": "This tool extracts URLs, paths, secrets, and other interesting bits from JavaScript files. Values are extracted based not just on how they look, but also based on how they are used."
+  },
+  {
+    "category": "Parameters",
+    "name": "parameth",
+    "url": "https://github.com/maK-/parameth",
+    "description": "This tool can be used to brute discover GET and POST parameters"
+  },
+  {
+    "category": "Parameters",
+    "name": "param-miner",
+    "url": "https://github.com/PortSwigger/param-miner",
+    "description": "This extension identifies hidden, unlinked parameters. It's particularly useful for finding web alterx poisoning vulnerabilities."
+  },
+  {
+    "category": "Parameters",
+    "name": "ParamPamPam",
+    "url": "https://github.com/Bo0oM/ParamPamPam",
+    "description": "This tool for brute discover GET and POST parameters."
+  },
+  {
+    "category": "Parameters",
+    "name": "Arjun",
+    "url": "https://github.com/s0md3v/Arjun",
+    "description": "HTTP parameter discovery suite."
+  },
+  {
+    "category": "Parameters",
+    "name": "ParamSpider",
+    "url": "https://github.com/devanshbatham/ParamSpider",
+    "description": "Mining parameters from dark corners of Web Archives."
+  },
+  {
+    "category": "Parameters",
+    "name": "x8",
+    "url": "https://github.com/Sh1Yo/x8",
+    "description": "Hidden parameters discovery suite written in Rust."
+  },
+  {
+    "category": "Fuzzing",
+    "name": "wfuzz",
+    "url": "https://github.com/xmendez/wfuzz",
+    "description": "Web application fuzzer"
+  },
+  {
+    "category": "Fuzzing",
+    "name": "ffuf",
+    "url": "https://github.com/ffuf/ffuf",
+    "description": "Fast web fuzzer written in Go"
+  },
+  {
+    "category": "Fuzzing",
+    "name": "fuzzdb",
+    "url": "https://github.com/fuzzdb-project/fuzzdb",
+    "description": "Dictionary of attack patterns and primitives for black-box application fault injection and resource discovery."
+  },
+  {
+    "category": "Fuzzing",
+    "name": "IntruderPayloads",
+    "url": "https://github.com/1N3/IntruderPayloads",
+    "description": "A collection of Burpsuite Intruder payloads, BurpBounty payloads, fuzz lists, malicious file uploads and web pentesting methodologies and checklists."
+  },
+  {
+    "category": "Fuzzing",
+    "name": "fuzz.txt",
+    "url": "https://github.com/Bo0oM/fuzz.txt",
+    "description": "Potentially dangerous files"
+  },
+  {
+    "category": "Fuzzing",
+    "name": "fuzzilli",
+    "url": "https://github.com/googleprojectzero/fuzzilli",
+    "description": "A JavaScript Engine Fuzzer"
+  },
+  {
+    "category": "Fuzzing",
+    "name": "fuzzapi",
+    "url": "https://github.com/Fuzzapi/fuzzapi",
+    "description": "Fuzzapi is a tool used for REST API pentesting and uses API_Fuzzer gem"
+  },
+  {
+    "category": "Fuzzing",
+    "name": "qsfuzz",
+    "url": "https://github.com/ameenmaali/qsfuzz",
+    "description": "qsfuzz (Query String Fuzz) allows you to build your own rules to fuzz query strings and easily identify vulnerabilities."
+  },
+  {
+    "category": "Fuzzing",
+    "name": "vaf",
+    "url": "https://github.com/d4rckh/vaf",
+    "description": "very advanced (web) fuzzer written in Nim."
+  },
+  {
+    "category": "Monitoring",
+    "name": "bbscope",
+    "url": "https://github.com/sw33tLie/bbscope",
+    "description": "Scope aggregation tool for HackerOne, Bugcrowd, Intigriti, YesWeHack, Immunefi"
+  },
+  {
+    "category": "Monitoring",
+    "name": "jsmon",
+    "url": "https://github.com/robre/jsmon",
+    "description": "A Javascript change monitoring tool for Bug Bounty."
+  },
+  {
+    "category": "Command Injection",
+    "name": "commix",
+    "url": "https://github.com/commixproject/commix",
+    "description": "Automated All-in-One OS command injection and exploitation tool."
+  },
+  {
+    "category": "CORS Misconfiguration",
+    "name": "Corsy",
+    "url": "https://github.com/s0md3v/Corsy",
+    "description": "CORS Misconfiguration Scanner"
+  },
+  {
+    "category": "CORS Misconfiguration",
+    "name": "Corser",
+    "url": "https://github.com/cyinnove/corser",
+    "description": "Corser is a Golang CLI Application for Advanced CORS Misconfiguration Detection."
+  },
+  {
+    "category": "CORS Misconfiguration",
+    "name": "CORStest",
+    "url": "https://github.com/RUB-NDS/CORStest",
+    "description": "A simple CORS misconfiguration scanner"
+  },
+  {
+    "category": "CORS Misconfiguration",
+    "name": "cors-scanner",
+    "url": "https://github.com/laconicwolf/cors-scanner",
+    "description": "A multi-threaded scanner that helps identify CORS flaws/misconfigurations"
+  },
+  {
+    "category": "CORS Misconfiguration",
+    "name": "CorsMe",
+    "url": "https://github.com/Shivangx01b/CorsMe",
+    "description": "Cross Origin Resource Sharing MisConfiguration Scanner"
+  },
+  {
+    "category": "CRLF Injection",
+    "name": "CRLFsuite",
+    "url": "https://github.com/Nefcore/CRLFsuite",
+    "description": "A fast tool specially designed to scan CRLF injection"
+  },
+  {
+    "category": "CRLF Injection",
+    "name": "crlfuzz",
+    "url": "https://github.com/dwisiswant0/crlfuzz",
+    "description": "A fast tool to scan CRLF vulnerability written in Go"
+  },
+  {
+    "category": "CRLF Injection",
+    "name": "CRLF-Injection-Scanner",
+    "url": "https://github.com/MichaelStott/CRLF-Injection-Scanner",
+    "description": "Command line tool for testing CRLF injection on a list of domains."
+  },
+  {
+    "category": "CRLF Injection",
+    "name": "Injectus",
+    "url": "https://github.com/BountyStrike/Injectus",
+    "description": "CRLF and open redirect fuzzer"
+  },
+  {
+    "category": "CSRF Injection",
+    "name": "XSRFProbe",
+    "url": "https://github.com/0xInfection/XSRFProbe",
+    "description": "The Prime Cross Site Request Forgery (CSRF) Audit and Exploitation Toolkit."
+  },
+  {
+    "category": "Directory Traversal",
+    "name": "dotdotpwn",
+    "url": "https://github.com/wireghoul/dotdotpwn",
+    "description": "DotDotPwn - The Directory Traversal Fuzzer"
+  },
+  {
+    "category": "Directory Traversal",
+    "name": "FDsploit",
+    "url": "https://github.com/chrispetrou/FDsploit",
+    "description": "File Inclusion & Directory Traversal fuzzing, enumeration & exploitation tool."
+  },
+  {
+    "category": "Directory Traversal",
+    "name": "off-by-slash",
+    "url": "https://github.com/bayotop/off-by-slash",
+    "description": "Burp extension to detect alias traversal via NGINX misconfiguration at scale."
+  },
+  {
+    "category": "Directory Traversal",
+    "name": "liffier",
+    "url": "https://github.com/momenbasel/liffier",
+    "description": "tired of manually add dot-dot-slash to your possible path traversal? this short snippet will increment ../ on the URL."
+  },
+  {
+    "category": "File Inclusion",
+    "name": "liffy",
+    "url": "https://github.com/mzfr/liffy",
+    "description": "Local file inclusion exploitation tool"
+  },
+  {
+    "category": "File Inclusion",
+    "name": "Burp-LFI-tests",
+    "url": "https://github.com/Team-Firebugs/Burp-LFI-tests",
+    "description": "Fuzzing for LFI using Burpsuite"
+  },
+  {
+    "category": "File Inclusion",
+    "name": "LFI-Enum",
+    "url": "https://github.com/mthbernardes/LFI-Enum",
+    "description": "Scripts to execute enumeration via LFI"
+  },
+  {
+    "category": "File Inclusion",
+    "name": "LFISuite",
+    "url": "https://github.com/D35m0nd142/LFISuite",
+    "description": "Totally Automatic LFI Exploiter (+ Reverse Shell) and Scanner"
+  },
+  {
+    "category": "File Inclusion",
+    "name": "LFI-files",
+    "url": "https://github.com/hussein98d/LFI-files",
+    "description": "Wordlist to bruteforce for LFI"
+  },
+  {
+    "category": "GraphQL Injection",
+    "name": "inql",
+    "url": "https://github.com/doyensec/inql",
+    "description": "InQL - A Burp Extension for GraphQL Security Testing"
+  },
+  {
+    "category": "GraphQL Injection",
+    "name": "GraphQLmap",
+    "url": "https://github.com/swisskyrepo/GraphQLmap",
+    "description": "GraphQLmap is a scripting engine to interact with a graphql endpoint for pentesting purposes."
+  },
+  {
+    "category": "GraphQL Injection",
+    "name": "shapeshifter",
+    "url": "https://github.com/szski/shapeshifter",
+    "description": "GraphQL security testing tool"
+  },
+  {
+    "category": "GraphQL Injection",
+    "name": "graphql_beautifier",
+    "url": "https://github.com/zidekmat/graphql_beautifier",
+    "description": "Burp Suite extension to help make Graphql request more readable"
+  },
+  {
+    "category": "GraphQL Injection",
+    "name": "clairvoyance",
+    "url": "https://github.com/nikitastupin/clairvoyance",
+    "description": "Obtain GraphQL API schema despite disabled introspection!"
+  },
+  {
+    "category": "Header Injection",
+    "name": "headi",
+    "url": "https://github.com/mlcsec/headi",
+    "description": "Customisable and automated HTTP header injection."
+  },
+  {
+    "category": "Insecure Deserialization",
+    "name": "ysoserial",
+    "url": "https://github.com/frohoff/ysoserial",
+    "description": "A proof-of-concept tool for generating payloads that exploit unsafe Java object deserialization."
+  },
+  {
+    "category": "Insecure Deserialization",
+    "name": "GadgetProbe",
+    "url": "https://github.com/BishopFox/GadgetProbe",
+    "description": "Probe endpoints consuming Java serialized objects to identify classes, libraries, and library versions on remote Java classpaths."
+  },
+  {
+    "category": "Insecure Deserialization",
+    "name": "ysoserial.net",
+    "url": "https://github.com/pwntester/ysoserial.net",
+    "description": "Deserialization payload generator for a variety of .NET formatters"
+  },
+  {
+    "category": "Insecure Deserialization",
+    "name": "phpggc",
+    "url": "https://github.com/ambionics/phpggc",
+    "description": "PHPGGC is a library of PHP unserialize() payloads along with a tool to generate them, from command line or programmatically."
+  },
+  {
+    "category": "Insecure Direct Object References",
+    "name": "Autorize",
+    "url": "https://github.com/Quitten/Autorize",
+    "description": "Automatic authorization enforcement detection extension for burp suite written in Jython developed by Barak Tawily"
+  },
+  {
+    "category": "Open Redirect",
+    "name": "Oralyzer",
+    "url": "https://github.com/r0075h3ll/Oralyzer",
+    "description": "Open Redirection Analyzer"
+  },
+  {
+    "category": "Open Redirect",
+    "name": "Injectus",
+    "url": "https://github.com/BountyStrike/Injectus",
+    "description": "CRLF and open redirect fuzzer"
+  },
+  {
+    "category": "Open Redirect",
+    "name": "dom-red",
+    "url": "https://github.com/Naategh/dom-red",
+    "description": "Small script to check a list of domains against open redirect vulnerability"
+  },
+  {
+    "category": "Open Redirect",
+    "name": "OpenRedireX",
+    "url": "https://github.com/devanshbatham/OpenRedireX",
+    "description": "A Fuzzer for OpenRedirect issues"
+  },
+  {
+    "category": "Race Condition",
+    "name": "razzer",
+    "url": "https://github.com/compsec-snu/razzer",
+    "description": "A Kernel fuzzer focusing on race bugs"
+  },
+  {
+    "category": "Race Condition",
+    "name": "racepwn",
+    "url": "https://github.com/racepwn/racepwn",
+    "description": "Race Condition framework"
+  },
+  {
+    "category": "Race Condition",
+    "name": "requests-racer",
+    "url": "https://github.com/nccgroup/requests-racer",
+    "description": "Small Python library that makes it easy to exploit race conditions in web apps with Requests."
+  },
+  {
+    "category": "Race Condition",
+    "name": "turbo-intruder",
+    "url": "https://github.com/PortSwigger/turbo-intruder",
+    "description": "Turbo Intruder is a Burp Suite extension for sending large numbers of HTTP requests and analyzing the results."
+  },
+  {
+    "category": "Race Condition",
+    "name": "race-the-web",
+    "url": "https://github.com/TheHackerDev/race-the-web",
+    "description": "Tests for race conditions in web applications. Includes a RESTful API to integrate into a continuous integration pipeline."
+  },
+  {
+    "category": "Request Smuggling",
+    "name": "http-request-smuggling",
+    "url": "https://github.com/anshumanpattnaik/http-request-smuggling",
+    "description": "HTTP Request Smuggling Detection Tool"
+  },
+  {
+    "category": "Request Smuggling",
+    "name": "smuggler",
+    "url": "https://github.com/defparam/smuggler",
+    "description": "Smuggler - An HTTP Request Smuggling / Desync testing tool written in Python 3"
+  },
+  {
+    "category": "Request Smuggling",
+    "name": "h2csmuggler",
+    "url": "https://github.com/BishopFox/h2csmuggler",
+    "description": "HTTP Request Smuggling over HTTP/2 Cleartext (h2c)"
+  },
+  {
+    "category": "Request Smuggling",
+    "name": "tiscripts",
+    "url": "https://github.com/defparam/tiscripts",
+    "description": "These scripts I use to create Request Smuggling Desync payloads for CLTE and TECL style attacks."
+  },
+  {
+    "category": "Request Smuggling",
+    "name": "smugglex",
+    "url": "github.com/hahwul/smugglex",
+    "description": "Rust-powered HTTP Request Smuggling Scanner."
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "SSRFmap",
+    "url": "https://github.com/swisskyrepo/SSRFmap",
+    "description": "Automatic SSRF fuzzer and exploitation tool"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "Gopherus",
+    "url": "https://github.com/tarunkant/Gopherus",
+    "description": "This tool generates gopher link for exploiting SSRF and gaining RCE in various servers"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "ground-control",
+    "url": "https://github.com/jobertabma/ground-control",
+    "description": "A collection of scripts that run on my web server. Mainly for debugging SSRF, blind XSS, and XXE vulnerabilities."
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "SSRFire",
+    "url": "https://github.com/micha3lb3n/SSRFire",
+    "description": "An automated SSRF finder. Just give the domain name and your server and chill! ;) Also has options to find XSS and open redirects"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "httprebind",
+    "url": "https://github.com/daeken/httprebind",
+    "description": "Automatic tool for DNS rebinding-based SSRF attacks"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "ssrf-sheriff",
+    "url": "https://github.com/teknogeek/ssrf-sheriff",
+    "description": "A simple SSRF-testing sheriff written in Go"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "B-XSSRF",
+    "url": "https://github.com/SpiderMate/B-XSSRF",
+    "description": "Toolkit to detect and keep track on Blind XSS, XXE & SSRF"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "extended-ssrf-search",
+    "url": "https://github.com/Damian89/extended-ssrf-search",
+    "description": "Smart ssrf scanner using different methods like parameter brute forcing in post and get..."
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "gaussrf",
+    "url": "https://github.com/KathanP19/gaussrf",
+    "description": "Fetch known URLs from AlienVault's Open Threat Exchange, the Wayback Machine, and Common Crawl and Filter Urls With OpenRedirection or SSRF Parameters."
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "ssrfDetector",
+    "url": "https://github.com/JacobReynolds/ssrfDetector",
+    "description": "Server-side request forgery detector"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "grafana-ssrf",
+    "url": "https://github.com/RandomRobbieBF/grafana-ssrf",
+    "description": "Authenticated SSRF in Grafana"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "sentrySSRF",
+    "url": "https://github.com/xawdxawdx/sentrySSRF",
+    "description": "Tool to searching sentry config on page or in javascript files and check blind SSRF"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "lorsrf",
+    "url": "https://github.com/knassar702/lorsrf",
+    "description": "Bruteforcing on Hidden parameters to find SSRF vulnerability using GET and POST Methods"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "singularity",
+    "url": "https://github.com/nccgroup/singularity",
+    "description": "A DNS rebinding attack framework."
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "whonow",
+    "url": "https://github.com/brannondorsey/whonow",
+    "description": "A \"malicious\" DNS server for executing DNS Rebinding attacks on the fly (public instance running on rebind.network:53)"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "dns-rebind-toolkit",
+    "url": "https://github.com/brannondorsey/dns-rebind-toolkit",
+    "description": "A front-end JavaScript toolkit for creating DNS rebinding attacks."
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "dref",
+    "url": "https://github.com/FSecureLABS/dref",
+    "description": "DNS Rebinding Exploitation Framework"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "rbndr",
+    "url": "https://github.com/taviso/rbndr",
+    "description": "Simple DNS Rebinding Service"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "httprebind",
+    "url": "https://github.com/daeken/httprebind",
+    "description": "Automatic tool for DNS rebinding-based SSRF attacks"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "dnsFookup",
+    "url": "https://github.com/makuga01/dnsFookup",
+    "description": "DNS rebinding toolkit"
+  },
+  {
+    "category": "Server Side Request Forgery",
+    "name": "surf",
+    "url": "https://github.com/assetnote/surf",
+    "description": "Escalate your SSRF vulnerabilities on Modern Cloud Environments. `surf` allows you to filter a list of hosts, returning a list of viable SSRF candidates."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "sqlmap",
+    "url": "https://github.com/sqlmapproject/sqlmap",
+    "description": "Automatic SQL injection and database takeover tool"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "NoSQLMap",
+    "url": "https://github.com/codingo/NoSQLMap",
+    "description": "Automated NoSQL database enumeration and web application exploitation tool."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "SQLiScanner",
+    "url": "https://github.com/0xbug/SQLiScanner",
+    "description": "Automatic SQL injection with Charles and sqlmap api"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "SleuthQL",
+    "url": "https://github.com/RhinoSecurityLabs/SleuthQL",
+    "description": "Python3 Burp History parsing tool to discover potential SQL injection points. To be used in tandem with SQLmap."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "mssqlproxy",
+    "url": "https://github.com/blackarrowsec/mssqlproxy",
+    "description": "mssqlproxy is a toolkit aimed to perform lateral movement in restricted environments through a compromised Microsoft SQL Server via socket reuse"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "sqli-hunter",
+    "url": "https://github.com/zt2/sqli-hunter",
+    "description": "SQLi-Hunter is a simple HTTP / HTTPS proxy server and a SQLMAP API wrapper that makes digging SQLi easy."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "waybackSqliScanner",
+    "url": "https://github.com/ghostlulzhacks/waybackSqliScanner",
+    "description": "Gather urls from wayback machine then test each GET parameter for sql injection."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "ESC",
+    "url": "https://github.com/NetSPI/ESC",
+    "description": "Evil SQL Client (ESC) is an interactive .NET SQL console client with enhanced SQL Server discovery, access, and data exfiltration features."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "mssqli-duet",
+    "url": "https://github.com/Keramas/mssqli-duet",
+    "description": "SQL injection script for MSSQL that extracts domain users from an Active Directory environment based on RID bruteforcing"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "burp-to-sqlmap",
+    "url": "https://github.com/Miladkhoshdel/burp-to-sqlmap",
+    "description": "Performing SQLInjection test on Burp Suite Bulk Requests using SQLMap"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "BurpSQLTruncSanner",
+    "url": "https://github.com/InitRoot/BurpSQLTruncSanner",
+    "description": "Messy BurpSuite plugin for SQL Truncation vulnerabilities."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "andor",
+    "url": "https://github.com/sadicann/andor",
+    "description": "Blind SQL Injection Tool with Golang"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Blinder",
+    "url": "https://github.com/mhaskar/Blinder",
+    "description": "A python library to automate time-based blind SQL injection"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "sqliv",
+    "url": "https://github.com/the-robot/sqliv",
+    "description": "massive SQL injection vulnerability scanner"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "nosqli",
+    "url": "https://github.com/Charlie-belmer/nosqli",
+    "description": "NoSql Injection CLI tool, for finding vulnerable websites using MongoDB."
+  },
+  {
+    "category": "SQL Injection",
+    "name": "ghauri",
+    "url": "https://github.com/r0oth3x49/ghauri",
+    "description": "An advanced cross-platform tool that automates the process of detecting and exploiting SQL injection security flaws"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "XSStrike",
+    "url": "https://github.com/s0md3v/XSStrike",
+    "description": "Most advanced XSS scanner."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xssor2",
+    "url": "https://github.com/evilcos/xssor2",
+    "description": "XSS'OR - Hack with JavaScript."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xsscrapy",
+    "url": "https://github.com/DanMcInerney/xsscrapy",
+    "description": "XSS spider - 66/66 wavsep XSS detected"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "sleepy-puppy",
+    "url": "https://github.com/Netflix-Skunkworks/sleepy-puppy",
+    "description": "Sleepy Puppy XSS Payload Management Framework"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "ezXSS",
+    "url": "https://github.com/ssl/ezXSS",
+    "description": "ezXSS is an easy way for penetration testers and bug bounty hunters to test (blind) Cross Site Scripting."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xsshunter",
+    "url": "https://github.com/mandatoryprogrammer/xsshunter",
+    "description": "The XSS Hunter service - a portable version of XSSHunter.com"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "dalfox",
+    "url": "https://github.com/hahwul/dalfox",
+    "description": "DalFox(Finder Of XSS) / Parameter Analysis and XSS Scanning tool based on golang"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xsser",
+    "url": "https://github.com/epsylon/xsser",
+    "description": "Cross Site \"Scripter\" (aka XSSer) is an automatic -framework- to detect, exploit and report XSS vulnerabilities in web-based applications."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "XSpear",
+    "url": "https://github.com/hahwul/XSpear",
+    "description": "Powerful XSS Scanning and Parameter analysis tool&gem"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "weaponised-XSS-payloads",
+    "url": "https://github.com/hakluke/weaponised-XSS-payloads",
+    "description": "XSS payloads designed to turn alert(1) into P1"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "tracy",
+    "url": "https://github.com/nccgroup/tracy",
+    "description": "A tool designed to assist with finding all sinks and sources of a web application and display these results in a digestible manner."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "ground-control",
+    "url": "https://github.com/jobertabma/ground-control",
+    "description": "A collection of scripts that run on my web server. Mainly for debugging SSRF, blind XSS, and XXE vulnerabilities."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xssValidator",
+    "url": "https://github.com/nVisium/xssValidator",
+    "description": "This is a burp intruder extender that is designed for automation and validation of XSS vulnerabilities."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "JSShell",
+    "url": "https://github.com/Den1al/JSShell",
+    "description": "An interactive multi-user web JS shell"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "bXSS",
+    "url": "https://github.com/LewisArdern/bXSS",
+    "description": "bXSS is a utility which can be used by bug hunters and organizations to identify Blind Cross-Site Scripting."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "docem",
+    "url": "https://github.com/whitel1st/docem",
+    "description": "Uility to embed XXE and XSS payloads in docx,odt,pptx,etc (OXML_XEE on steroids)"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "XSS-Radar",
+    "url": "https://github.com/bugbountyforum/XSS-Radar",
+    "description": "XSS Radar is a tool that detects parameters and fuzzes them for cross-site scripting vulnerabilities."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "BruteXSS",
+    "url": "https://github.com/rajeshmajumdar/BruteXSS",
+    "description": "BruteXSS is a tool written in python simply to find XSS vulnerabilities in web application."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "findom-xss",
+    "url": "https://github.com/dwisiswant0/findom-xss",
+    "description": "A fast DOM based XSS vulnerability scanner with simplicity."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "domdig",
+    "url": "https://github.com/fcavallarin/domdig",
+    "description": "DOM XSS scanner for Single Page Applications"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "femida",
+    "url": "https://github.com/wish-i-was/femida",
+    "description": "Automated blind-xss search for Burp Suite"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "B-XSSRF",
+    "url": "https://github.com/SpiderMate/B-XSSRF",
+    "description": "Toolkit to detect and keep track on Blind XSS, XXE & SSRF"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "domxssscanner",
+    "url": "https://github.com/yaph/domxssscanner",
+    "description": "DOMXSS Scanner is an online tool to scan source code for DOM based XSS vulnerabilities"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xsshunter_client",
+    "url": "https://github.com/mandatoryprogrammer/xsshunter_client",
+    "description": "Correlated injection proxy tool for XSS Hunter"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "extended-xss-search",
+    "url": "https://github.com/Damian89/extended-xss-search",
+    "description": "A better version of my xssfinder tool - scans for different types of xss on a list of urls."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xssmap",
+    "url": "https://github.com/Jewel591/xssmap",
+    "description": "XSSMap \u662f\u4e00\u6b3e\u57fa\u4e8e Python3 \u5f00\u53d1\u7528\u4e8e\u68c0\u6d4b XSS \u6f0f\u6d1e\u7684\u5de5\u5177"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "XSSCon",
+    "url": "https://github.com/menkrep1337/XSSCon",
+    "description": "XSSCon: Simple XSS Scanner tool"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "BitBlinder",
+    "url": "https://github.com/BitTheByte/BitBlinder",
+    "description": "BurpSuite extension to inject custom cross-site scripting payloads on every form/request submitted to detect blind XSS vulnerabilities"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "XSSOauthPersistence",
+    "url": "https://github.com/dxa4481/XSSOauthPersistence",
+    "description": "Maintaining account persistence via XSS and Oauth"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "shadow-workers",
+    "url": "https://github.com/shadow-workers/shadow-workers",
+    "description": "Shadow Workers is a free and open source C2 and proxy designed for penetration testers to help in the exploitation of XSS and malicious Service Workers (SW)"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "rexsser",
+    "url": "https://github.com/profmoriarity/rexsser",
+    "description": "This is a burp plugin that extracts keywords from response using regexes and test for reflected XSS on the target scope."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xss-flare",
+    "url": "https://github.com/EgeBalci/xss-flare",
+    "description": "XSS hunter on cloudflare serverless workers."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "Xss-Sql-Fuzz",
+    "url": "https://github.com/jiangsir404/Xss-Sql-Fuzz",
+    "description": "burpsuite \u63d2\u4ef6\u5bf9GP\u6240\u6709\u53c2\u6570(\u8fc7\u6ee4\u7279\u6b8a\u53c2\u6570)\u4e00\u952e\u81ea\u52a8\u6dfb\u52a0xss sql payload \u8fdb\u884cfuzz"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "vaya-ciego-nen",
+    "url": "https://github.com/hipotermia/vaya-ciego-nen",
+    "description": "Detect, manage and exploit Blind Cross-site scripting (XSS) vulnerabilities."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "dom-based-xss-finder",
+    "url": "https://github.com/AsaiKen/dom-based-xss-finder",
+    "description": "Chrome extension that finds DOM based XSS vulnerabilities"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "XSSTerminal",
+    "url": "https://github.com/machinexa2/XSSTerminal",
+    "description": "Develop your own XSS Payload using interactive typing"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "xss2png",
+    "url": "https://github.com/vavkamil/xss2png",
+    "description": "PNG IDAT chunks XSS payload generator"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "XSSwagger",
+    "url": "https://github.com/vavkamil/XSSwagger",
+    "description": "A simple Swagger-ui scanner that can detect old versions vulnerable to various XSS attacks"
+  },
+  {
+    "category": "XSS Injection",
+    "name": "JSONBee",
+    "url": "https://github.com/zigoo0/JSONBee",
+    "description": "A ready to use JSONP endpoints/payloads to help bypass content security policy (CSP) of different websites."
+  },
+  {
+    "category": "XSS Injection",
+    "name": "CSPBypass",
+    "url": "https://github.com/renniepak/CSPBypass",
+    "description": "a tool designed to help bypass restrictive Content Security Policies (CSP) and exploit XSS (Cross-Site Scripting) vulnerabilities on sites where injections are blocked by CSPs that only allow certain whitelisted domains."
+  },
+  {
+    "category": "XXE Injection",
+    "name": "ground-control",
+    "url": "https://github.com/jobertabma/ground-control",
+    "description": "A collection of scripts that run on my web server. Mainly for debugging SSRF, blind XSS, and XXE vulnerabilities."
+  },
+  {
+    "category": "XXE Injection",
+    "name": "dtd-finder",
+    "url": "https://github.com/GoSecure/dtd-finder",
+    "description": "List DTDs and generate XXE payloads using those local DTDs."
+  },
+  {
+    "category": "XXE Injection",
+    "name": "docem",
+    "url": "https://github.com/whitel1st/docem",
+    "description": "Uility to embed XXE and XSS payloads in docx,odt,pptx,etc (OXML_XEE on steroids)"
+  },
+  {
+    "category": "XXE Injection",
+    "name": "xxeserv",
+    "url": "https://github.com/staaldraad/xxeserv",
+    "description": "A mini webserver with FTP support for XXE payloads"
+  },
+  {
+    "category": "XXE Injection",
+    "name": "xxexploiter",
+    "url": "https://github.com/luisfontes19/xxexploiter",
+    "description": "Tool to help exploit XXE vulnerabilities"
+  },
+  {
+    "category": "XXE Injection",
+    "name": "B-XSSRF",
+    "url": "https://github.com/SpiderMate/B-XSSRF",
+    "description": "Toolkit to detect and keep track on Blind XSS, XXE & SSRF"
+  },
+  {
+    "category": "XXE Injection",
+    "name": "XXEinjector",
+    "url": "https://github.com/enjoiz/XXEinjector",
+    "description": "Tool for automatic exploitation of XXE vulnerability using direct and different out of band methods."
+  },
+  {
+    "category": "XXE Injection",
+    "name": "oxml_xxe",
+    "url": "https://github.com/BuffaloWill/oxml_xxe",
+    "description": "A tool for embedding XXE/XML exploits into different filetypes"
+  },
+  {
+    "category": "XXE Injection",
+    "name": "metahttp",
+    "url": "https://github.com/vp777/metahttp",
+    "description": "A bash script that automates the scanning of a target network for HTTP resources through XXE"
+  },
+  {
+    "category": "SSTI Injection",
+    "name": "tplmap",
+    "url": "https://github.com/epinna/tplmap",
+    "description": "Server-Side Template Injection and Code Injection Detection and Exploitation Tool"
+  },
+  {
+    "category": "SSTI Injection",
+    "name": "SSTImap",
+    "url": "https://github.com/vladko312/SSTImap",
+    "description": "Automatic SSTI detection tool with interactive interface"
+  },
+  {
+    "category": "Web-Cache-Poisoning",
+    "name": "toxicache",
+    "url": "https://github.com/xhzeem/toxicache",
+    "description": "Go scanner to find web cache poisoning vulnerabilities in a list of URLs ."
+  },
+  {
+    "category": "Waf Evasion",
+    "name": "nomore403",
+    "url": "https://github.com/devploit/nomore403",
+    "description": "Advanced tool for security researchers to bypass 403/40X restrictions ."
+  },
+  {
+    "category": "Waf Evasion",
+    "name": "XFFenum",
+    "url": "https://github.com/vavkamil/XFFenum",
+    "description": "A simple tool to bypass 403 forbidden end-points behind load balancers (Cloudflare) based on X-Forwarded-For header."
+  },
+  {
+    "category": "Waf Evasion",
+    "name": "Forbidden Buster",
+    "url": "https://github.com/Sn1r/Forbidden-Buster",
+    "description": "A tool designed to automate various techniques in order to bypass HTTP 401 and 403 response codes and gain access to unauthorized areas in the system."
+  },
+  {
+    "category": "Waf Evasion",
+    "name": "nowafpls",
+    "url": "https://github.com/assetnote/nowafpls/",
+    "description": "Burp Plugin to Bypass WAFs through the insertion of Junk Data."
+  },
+  {
+    "category": "Passwords",
+    "name": "thc-hydra",
+    "url": "https://github.com/vanhauser-thc/thc-hydra",
+    "description": "Hydra is a parallelized login cracker which supports numerous protocols to attack."
+  },
+  {
+    "category": "Passwords",
+    "name": "DefaultCreds-cheat-sheet",
+    "url": "https://github.com/ihebski/DefaultCreds-cheat-sheet",
+    "description": "One place for all the default credentials to assist the Blue/Red teamers activities on finding devices with default password"
+  },
+  {
+    "category": "Passwords",
+    "name": "changeme",
+    "url": "https://github.com/ztgrace/changeme",
+    "description": "A default credential scanner."
+  },
+  {
+    "category": "Passwords",
+    "name": "BruteX",
+    "url": "https://github.com/1N3/BruteX",
+    "description": "Automatically brute force all services running on a target."
+  },
+  {
+    "category": "Passwords",
+    "name": "patator",
+    "url": "https://github.com/lanjelot/patator",
+    "description": "Patator is a multi-purpose brute-forcer, with a modular design and a flexible usage."
+  },
+  {
+    "category": "Secrets",
+    "name": "git-secrets",
+    "url": "https://github.com/awslabs/git-secrets",
+    "description": "Prevents you from committing secrets and credentials into git repositories"
+  },
+  {
+    "category": "Secrets",
+    "name": "gitleaks",
+    "url": "https://github.com/zricethezav/gitleaks",
+    "description": "Scan git repos (or files) for secrets using regex and entropy"
+  },
+  {
+    "category": "Secrets",
+    "name": "truffleHog",
+    "url": "https://github.com/dxa4481/truffleHog",
+    "description": "Searches through git repositories for high entropy strings and secrets, digging deep into commit history"
+  },
+  {
+    "category": "Secrets",
+    "name": "gitGraber",
+    "url": "https://github.com/hisxo/gitGraber",
+    "description": "gitGraber: monitor GitHub to search and find sensitive data in real time for different online services"
+  },
+  {
+    "category": "Secrets",
+    "name": "talisman",
+    "url": "https://github.com/thoughtworks/talisman",
+    "description": "By hooking into the pre-push hook provided by Git, Talisman validates the outgoing changeset for things that look suspicious - such as authorization tokens and private keys."
+  },
+  {
+    "category": "Secrets",
+    "name": "GitGot",
+    "url": "https://github.com/BishopFox/GitGot",
+    "description": "Semi-automated, feedback-driven tool to rapidly search through troves of public data on GitHub for sensitive secrets."
+  },
+  {
+    "category": "Secrets",
+    "name": "git-all-secrets",
+    "url": "https://github.com/anshumanbh/git-all-secrets",
+    "description": "A tool to capture all the git secrets by leveraging multiple open source git searching tools"
+  },
+  {
+    "category": "Secrets",
+    "name": "github-search",
+    "url": "https://github.com/gwen001/github-search",
+    "description": "Tools to perform basic search on GitHub."
+  },
+  {
+    "category": "Secrets",
+    "name": "git-vuln-finder",
+    "url": "https://github.com/cve-search/git-vuln-finder",
+    "description": "Finding potential software vulnerabilities from git commit messages"
+  },
+  {
+    "category": "Secrets",
+    "name": "commit-stream",
+    "url": "https://github.com/x1sec/commit-stream",
+    "description": "#OSINT tool for finding Github repositories by extracting commit logs in real time from the Github event API"
+  },
+  {
+    "category": "Secrets",
+    "name": "gitrob",
+    "url": "https://github.com/michenriksen/gitrob",
+    "description": "Reconnaissance tool for GitHub organizations"
+  },
+  {
+    "category": "Secrets",
+    "name": "repo-supervisor",
+    "url": "https://github.com/auth0/repo-supervisor",
+    "description": "Scan your code for security misconfiguration, search for passwords and secrets."
+  },
+  {
+    "category": "Secrets",
+    "name": "GitMiner",
+    "url": "https://github.com/UnkL4b/GitMiner",
+    "description": "Tool for advanced mining for content on Github"
+  },
+  {
+    "category": "Secrets",
+    "name": "shhgit",
+    "url": "https://github.com/eth0izzle/shhgit",
+    "description": "Ah shhgit! Find GitHub secrets in real time"
+  },
+  {
+    "category": "Secrets",
+    "name": "detect-secrets",
+    "url": "https://github.com/Yelp/detect-secrets",
+    "description": "An enterprise friendly way of detecting and preventing secrets in code."
+  },
+  {
+    "category": "Secrets",
+    "name": "rusty-hog",
+    "url": "https://github.com/newrelic/rusty-hog",
+    "description": "A suite of secret scanners built in Rust for performance. Based on TruffleHog"
+  },
+  {
+    "category": "Secrets",
+    "name": "whispers",
+    "url": "https://github.com/Skyscanner/whispers",
+    "description": "Identify hardcoded secrets and dangerous behaviours"
+  },
+  {
+    "category": "Secrets",
+    "name": "yar",
+    "url": "https://github.com/nielsing/yar",
+    "description": "Yar is a tool for plunderin' organizations, users and/or repositories."
+  },
+  {
+    "category": "Secrets",
+    "name": "dufflebag",
+    "url": "https://github.com/BishopFox/dufflebag",
+    "description": "Search exposed EBS volumes for secrets"
+  },
+  {
+    "category": "Secrets",
+    "name": "secret-bridge",
+    "url": "https://github.com/duo-labs/secret-bridge",
+    "description": "Monitors Github for leaked secrets"
+  },
+  {
+    "category": "Secrets",
+    "name": "earlybird",
+    "url": "https://github.com/americanexpress/earlybird",
+    "description": "EarlyBird is a sensitive data detection tool capable of scanning source code repositories for clear text password violations, PII, outdated cryptography methods, key files and more."
+  },
+  {
+    "category": "Secrets",
+    "name": "Trufflehog-Chrome-Extension",
+    "url": "https://github.com/trufflesecurity/Trufflehog-Chrome-Extension",
+    "description": "Trufflehog-Chrome-Extension"
+  },
+  {
+    "category": "Secrets",
+    "name": "noseyparker",
+    "url": "https://github.com/praetorian-inc/noseyparker",
+    "description": "Nosey Parker is a command-line program that finds secrets and sensitive information in textual data and Git history."
+  },
+  {
+    "category": "Secrets",
+    "name": "GitHound",
+    "url": "https://github.com/tillson/git-hound",
+    "description": "Recon tool leveraging Code Search API. Scans for exposed API keys across all of GitHub, not just known repos and orgs. Support for GitHub dorks."
+  },
+  {
+    "category": "Secrets",
+    "name": "cariddi",
+    "url": "https://github.com/edoardottt/cariddi",
+    "description": "Take a list of domains, crawl urls and scan for endpoints, secrets, api keys, file extensions, tokens and more..."
+  },
+  {
+    "category": "Secrets",
+    "name": "SecretFinder",
+    "url": "https://github.com/m4ll0k/SecretFinder",
+    "description": "A python script for finding sensitive data (apikeys, accesstoken,jwt,..) and search anything on javascript files."
+  },
+  {
+    "category": "Secrets",
+    "name": "js-snitch",
+    "url": "https://github.com/vavkamil/js-snitch",
+    "description": "Scans remote JavaScript files with Trufflehog + Semgrep to detect leaked secrets."
+  },
+  {
+    "category": "Secrets",
+    "name": "keyhacks",
+    "url": "https://github.com/streaak/keyhacks",
+    "description": "KeyHacks shows methods to validate different API keys found on a Bug Bounty Program or a pentest."
+  },
+  {
+    "category": "Secrets",
+    "name": "keyFinder",
+    "url": "https://github.com/momenbasel/keyFinder",
+    "description": "A Chrome extension that passively scans web pages for API keys, tokens, and secrets using 80+ regex patterns and Shannon entropy analysis across 10 attack surfaces."
+  },
+  {
+    "category": "Git",
+    "name": "GitTools",
+    "url": "https://github.com/internetwache/GitTools",
+    "description": "A repository with 3 tools for pwn'ing websites with .git repositories available"
+  },
+  {
+    "category": "Git",
+    "name": "gitjacker",
+    "url": "https://github.com/liamg/gitjacker",
+    "description": "Leak git repositories from misconfigured websites"
+  },
+  {
+    "category": "Git",
+    "name": "git-dumper",
+    "url": "https://github.com/arthaud/git-dumper",
+    "description": "A tool to dump a git repository from a website"
+  },
+  {
+    "category": "Git",
+    "name": "GitHunter",
+    "url": "https://github.com/digininja/GitHunter",
+    "description": "A tool for searching a Git repository for interesting content"
+  },
+  {
+    "category": "Git",
+    "name": "dvcs-ripper",
+    "url": "https://github.com/kost/dvcs-ripper",
+    "description": "Rip web accessible (distributed) version control systems: SVN/GIT/HG..."
+  },
+  {
+    "category": "Git",
+    "name": "Gato (Github Attack TOolkit)",
+    "url": "https://github.com/praetorian-inc/gato",
+    "description": "GitHub Self-Hosted Runner Enumeration and Attack Tool"
+  },
+  {
+    "category": "Git",
+    "name": "zizmor",
+    "url": "https://github.com/zizmorcore/zizmor",
+    "description": "Static analysis tool for GitHub Actions"
+  },
+  {
+    "category": "Buckets",
+    "name": "S3Scanner",
+    "url": "https://github.com/sa7mon/S3Scanner",
+    "description": "Scan for open AWS S3 buckets and dump the contents"
+  },
+  {
+    "category": "Buckets",
+    "name": "AWSBucketDump",
+    "url": "https://github.com/jordanpotti/AWSBucketDump",
+    "description": "Security Tool to Look For Interesting Files in S3 Buckets"
+  },
+  {
+    "category": "Buckets",
+    "name": "CloudScraper",
+    "url": "https://github.com/jordanpotti/CloudScraper",
+    "description": "CloudScraper: Tool to enumerate targets in search of cloud resources. S3 Buckets, Azure Blobs, Digital Ocean Storage Space."
+  },
+  {
+    "category": "Buckets",
+    "name": "s3viewer",
+    "url": "https://github.com/SharonBrizinov/s3viewer",
+    "description": "Publicly Open Amazon AWS S3 Bucket Viewer"
+  },
+  {
+    "category": "Buckets",
+    "name": "festin",
+    "url": "https://github.com/cr0hn/festin",
+    "description": "FestIn - S3 Bucket Weakness Discovery"
+  },
+  {
+    "category": "Buckets",
+    "name": "s3reverse",
+    "url": "https://github.com/hahwul/s3reverse",
+    "description": "The format of various s3 buckets is convert in one format. for bugbounty and security testing."
+  },
+  {
+    "category": "Buckets",
+    "name": "mass-s3-bucket-tester",
+    "url": "https://github.com/random-robbie/mass-s3-bucket-tester",
+    "description": "This tests a list of s3 buckets to see if they have dir listings enabled or if they are uploadable"
+  },
+  {
+    "category": "Buckets",
+    "name": "S3BucketList",
+    "url": "https://github.com/AlecBlance/S3BucketList",
+    "description": "Firefox plugin that lists Amazon S3 Buckets found in requests"
+  },
+  {
+    "category": "Buckets",
+    "name": "dirlstr",
+    "url": "https://github.com/cybercdh/dirlstr",
+    "description": "Finds Directory Listings or open S3 buckets from a list of URLs"
+  },
+  {
+    "category": "Buckets",
+    "name": "Burp-AnonymousCloud",
+    "url": "https://github.com/codewatchorg/Burp-AnonymousCloud",
+    "description": "Burp extension that performs a passive scan to identify cloud buckets and then test them for publicly accessible vulnerabilities"
+  },
+  {
+    "category": "Buckets",
+    "name": "kicks3",
+    "url": "https://github.com/abuvanth/kicks3",
+    "description": "S3 bucket finder from html,js and bucket misconfiguration testing tool"
+  },
+  {
+    "category": "Buckets",
+    "name": "2tearsinabucket",
+    "url": "https://github.com/Revenant40/2tearsinabucket",
+    "description": "Enumerate s3 buckets for a specific target."
+  },
+  {
+    "category": "Buckets",
+    "name": "s3_objects_check",
+    "url": "https://github.com/nccgroup/s3_objects_check",
+    "description": "Whitebox evaluation of effective S3 object permissions, to identify publicly accessible files."
+  },
+  {
+    "category": "Buckets",
+    "name": "s3tk",
+    "url": "https://github.com/ankane/s3tk",
+    "description": "A security toolkit for Amazon S3"
+  },
+  {
+    "category": "Buckets",
+    "name": "CloudBrute",
+    "url": "https://github.com/0xsha/CloudBrute",
+    "description": "Awesome cloud enumerator"
+  },
+  {
+    "category": "Buckets",
+    "name": "s3cario",
+    "url": "https://github.com/0xspade/s3cario",
+    "description": "This tool will get the CNAME first if it's a valid Amazon s3 bucket and if it's not, it will try to check if the domain is a bucket name."
+  },
+  {
+    "category": "Buckets",
+    "name": "S3Cruze",
+    "url": "https://github.com/JR0ch17/S3Cruze",
+    "description": "All-in-one AWS S3 bucket tool for pentesters."
+  },
+  {
+    "category": "Buckets",
+    "name": "s3dns",
+    "url": "https://github.com/olizimmermann/s3dns",
+    "description": "Passive DNS-based discovery of S3 (and other cloud) buckets by resolving CNAMEs and IPs during recon\u2014ideal for stealthy and early identification of cloud storage exposures"
+  },
+  {
+    "category": "CMS",
+    "name": "wpscan",
+    "url": "https://github.com/wpscanteam/wpscan",
+    "description": "WPScan is a free, for non-commercial use, black box WordPress security scanner"
+  },
+  {
+    "category": "CMS",
+    "name": "WPSpider",
+    "url": "https://github.com/cyc10n3/WPSpider",
+    "description": "A centralized dashboard for running and scheduling WordPress scans powered by wpscan utility."
+  },
+  {
+    "category": "CMS",
+    "name": "wprecon",
+    "url": "https://github.com/blackcrw/wprecon",
+    "description": "Wordpress Recon"
+  },
+  {
+    "category": "CMS",
+    "name": "Temodar Agent",
+    "url": "https://github.com/xeloxa/temodar-agent",
+    "description": "AI-powered WordPress plugin/theme security analysis platform with Semgrep-based static analysis and agent-assisted investigation workflows"
+  },
+  {
+    "category": "CMS",
+    "name": "CMSmap",
+    "url": "https://github.com/Dionach/CMSmap",
+    "description": "CMSmap is a python open source CMS scanner that automates the process of detecting security flaws of the most popular CMSs."
+  },
+  {
+    "category": "CMS",
+    "name": "joomscan",
+    "url": "https://github.com/OWASP/joomscan",
+    "description": "OWASP Joomla Vulnerability Scanner Project"
+  },
+  {
+    "category": "CMS",
+    "name": "pyfiscan",
+    "url": "https://github.com/fgeek/pyfiscan",
+    "description": "Free web-application vulnerability and version scanner"
+  },
+  {
+    "category": "CMS",
+    "name": "aemhacker",
+    "url": "https://github.com/0ang3el/aem-hacker",
+    "description": "Tools to identify vulnerable Adobe Experience Manager (AEM) webapps."
+  },
+  {
+    "category": "CMS",
+    "name": "aemscan",
+    "url": "https://github.com/Raz0r/aemscan",
+    "description": "Adobe Experience Manager Vulnerability Scanner"
+  },
+  {
+    "category": "JSON Web Token",
+    "name": "jwt_tool",
+    "url": "https://github.com/ticarpi/jwt_tool",
+    "description": "A toolkit for testing, tweaking and cracking JSON Web Tokens"
+  },
+  {
+    "category": "JSON Web Token",
+    "name": "c-jwt-cracker",
+    "url": "https://github.com/brendan-rius/c-jwt-cracker",
+    "description": "JWT brute force cracker written in C"
+  },
+  {
+    "category": "JSON Web Token",
+    "name": "jwt-heartbreaker",
+    "url": "https://github.com/wallarm/jwt-heartbreaker",
+    "description": "The Burp extension to check JWT (JSON Web Tokens) for using keys from known from public sources"
+  },
+  {
+    "category": "JSON Web Token",
+    "name": "jwtear",
+    "url": "https://github.com/KINGSABRI/jwtear",
+    "description": "Modular command-line tool to parse, create and manipulate JWT tokens for hackers"
+  },
+  {
+    "category": "JSON Web Token",
+    "name": "jwt-key-id-injector",
+    "url": "https://github.com/dariusztytko/jwt-key-id-injector",
+    "description": "Simple python script to check against hypothetical JWT vulnerability."
+  },
+  {
+    "category": "JSON Web Token",
+    "name": "jwt-hack",
+    "url": "https://github.com/hahwul/jwt-hack",
+    "description": "jwt-hack is tool for hacking / security testing to JWT."
+  },
+  {
+    "category": "JSON Web Token",
+    "name": "jwt-cracker",
+    "url": "https://github.com/lmammino/jwt-cracker",
+    "description": "Simple HS256 JWT token brute force cracker"
+  },
+  {
+    "category": "postMessage",
+    "name": "postMessage-tracker",
+    "url": "https://github.com/fransr/postMessage-tracker",
+    "description": "A Chrome Extension to track postMessage usage (url, domain and stack) both by logging using CORS and also visually as an extension-icon"
+  },
+  {
+    "category": "postMessage",
+    "name": "PostMessage_Fuzz_Tool",
+    "url": "https://github.com/kiranreddyrebel/PostMessage_Fuzz_Tool",
+    "description": "#BugBounty #BugBounty Tools #WebDeveloper Tool"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "subjack",
+    "url": "https://github.com/haccer/subjack",
+    "description": "Subdomain Takeover tool written in Go"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "SubOver",
+    "url": "https://github.com/Ice3man543/SubOver",
+    "description": "A Powerful Subdomain Takeover Tool"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "autoSubTakeover",
+    "url": "https://github.com/JordyZomer/autoSubTakeover",
+    "description": "A tool used to check if a CNAME resolves to the scope address. If the CNAME resolves to a non-scope address it might be worth checking out if subdomain takeover is possible."
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "NSBrute",
+    "url": "https://github.com/shivsahni/NSBrute",
+    "description": "Python utility to takeover domains vulnerable to AWS NS Takeover"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "can-i-take-over-xyz",
+    "url": "https://github.com/EdOverflow/can-i-take-over-xyz",
+    "description": "\"Can I take over XYZ?\" \u2014 a list of services and how to claim (sub)domains with dangling DNS records."
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "cnames",
+    "url": "https://github.com/cybercdh/cnames",
+    "description": "take a list of resolved subdomains and output any corresponding CNAMES en masse."
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "subHijack",
+    "url": "https://github.com/vavkamil/old-repos-backup/tree/master/subHijack-master",
+    "description": "Hijacking forgotten & misconfigured subdomains"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "tko-subs",
+    "url": "https://github.com/anshumanbh/tko-subs",
+    "description": "A tool that can help detect and takeover subdomains with dead DNS records"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "HostileSubBruteforcer",
+    "url": "https://github.com/nahamsec/HostileSubBruteforcer",
+    "description": "This app will bruteforce for existing subdomains and provide information if the 3rd party host has been properly setup."
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "second-order",
+    "url": "https://github.com/mhmdiaa/second-order",
+    "description": "Second-order subdomain takeover scanner"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "takeover",
+    "url": "https://github.com/mzfr/takeover",
+    "description": "A tool for testing subdomain takeover possibilities at a mass scale."
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "dnsReaper",
+    "url": "https://github.com/punk-security/dnsReaper",
+    "description": "DNS Reaper is yet another sub-domain takeover tool, but with an emphasis on accuracy, speed and the number of signatures in our arsenal!"
+  },
+  {
+    "category": "Subdomain Takeover",
+    "name": "subzy",
+    "url": "https://github.com/PentestPad/subzy",
+    "description": "Subdomain takeover tool which works based on matching response fingerprints from `can-i-take-over-xyz`."
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "nuclei",
+    "url": "https://github.com/projectdiscovery/nuclei",
+    "description": "Nuclei is a fast tool for configurable targeted scanning based on templates offering massive extensibility and ease of use."
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "nuclei-templates",
+    "url": "https://github.com/projectdiscovery/nuclei-templates",
+    "description": "Community curated list of templates for the nuclei engine to find security vulnerabilities."
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "Sn1per",
+    "url": "https://github.com/1N3/Sn1per",
+    "description": "Automated pentest framework for offensive security experts"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "metasploit-framework",
+    "url": "https://github.com/rapid7/metasploit-framework",
+    "description": "Metasploit Framework"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "nikto",
+    "url": "https://github.com/sullo/nikto",
+    "description": "Nikto web server scanner"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "arachni",
+    "url": "https://github.com/Arachni/arachni",
+    "description": "Web Application Security Scanner Framework"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "jaeles",
+    "url": "https://github.com/jaeles-project/jaeles",
+    "description": "The Swiss Army knife for automated Web Application Testing"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "retire.js",
+    "url": "https://github.com/RetireJS/retire.js",
+    "description": "scanner detecting the use of JavaScript libraries with known vulnerabilities"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "Osmedeus",
+    "url": "https://github.com/j3ssie/Osmedeus",
+    "description": "Fully automated offensive security framework for reconnaissance and vulnerability scanning"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "getsploit",
+    "url": "https://github.com/vulnersCom/getsploit",
+    "description": "Command line utility for searching and downloading exploits"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "flan",
+    "url": "https://github.com/cloudflare/flan",
+    "description": "A pretty sweet vulnerability scanner"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "Findsploit",
+    "url": "https://github.com/1N3/Findsploit",
+    "description": "Find exploits in local and online databases instantly"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "BlackWidow",
+    "url": "https://github.com/1N3/BlackWidow",
+    "description": "A Python based web application scanner to gather OSINT and fuzz for OWASP vulnerabilities on a target website."
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "backslash-powered-scanner",
+    "url": "https://github.com/PortSwigger/backslash-powered-scanner",
+    "description": "Finds unknown classes of injection vulnerabilities"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "Eagle",
+    "url": "https://github.com/BitTheByte/Eagle",
+    "description": "Multithreaded Plugin based vulnerability scanner for mass detection of web-based applications vulnerabilities"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "cariddi",
+    "url": "https://github.com/edoardottt/cariddi",
+    "description": "Take a list of domains, crawl urls and scan for endpoints, secrets, api keys, file extensions, tokens and more..."
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "OWASP ZAP",
+    "url": "https://github.com/zaproxy/zaproxy",
+    "description": "World\u2019s most popular free web security tools and is actively maintained by a dedicated international team of volunteers"
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "SSTImap",
+    "url": "https://github.com/vladko312/SSTImap",
+    "description": "SSTImap is a penetration testing software that can check websites for Code Injection and Server-Side Template Injection vulnerabilities and exploit them, giving access to the operating system itself."
+  },
+  {
+    "category": "Vulnerability Scanners",
+    "name": "Lonkero",
+    "url": "https://github.com/bountyyfi/lonkero",
+    "description": "Enterprise-grade web vulnerability scanner with 60+ attack modules, built in Rust for penetration testing and security assessments."
+  },
+  {
+    "category": "Permutation",
+    "name": "alterx",
+    "url": "https://github.com/projectdiscovery/alterx",
+    "description": "Fast and customizable subdomain wordlist generator using DSL. alterx takes patterns as input and generates subdomain permutation wordlist based on that pattern."
+  },
+  {
+    "category": "Permutation",
+    "name": "gotator",
+    "url": "https://github.com/Josue87/gotator",
+    "description": "Gotator is a tool to generate DNS wordlists through permutations."
+  },
+  {
+    "category": "Permutation",
+    "name": "ripgen",
+    "url": "https://github.com/resyncgg/ripgen",
+    "description": "Rust-based high performance domain permutation generator."
+  },
+  {
+    "category": "Permutation",
+    "name": "dnsgen",
+    "url": "https://github.com/AlephNullSK/dnsgen",
+    "description": "DNSGen is a powerful and flexible DNS name permutation tool designed for security researchers and penetration testers. It generates intelligent domain name variations to assist in subdomain discovery and security assessments."
+  },
+  {
+    "category": "Permutation",
+    "name": "goaltdns",
+    "url": "https://github.com/subfinder/goaltdns",
+    "description": "A permutation generation tool written in golang."
+  },
+  {
+    "category": "Permutation",
+    "name": "altdns",
+    "url": "https://github.com/infosec-au/altdns",
+    "description": "Generates permutations, alterations and mutations of subdomains and then resolves them."
+  },
+  {
+    "category": "Web Proxy and Traffic Interception",
+    "name": "mitmproxy",
+    "url": "https://github.com/mitmproxy/mitmproxy",
+    "description": "An interactive TLS-capable intercepting HTTP proxy for penetration testers and software developers."
+  },
+  {
+    "category": "Web Proxy and Traffic Interception",
+    "name": "proxify",
+    "url": "https://github.com/projectdiscovery/proxify",
+    "description": "A versatile and portable proxy for capturing, manipulating, and replaying HTTP/HTTPS traffic on the go."
+  },
+  {
+    "category": "Web Proxy and Traffic Interception",
+    "name": "FoxyProxy Browser Extension",
+    "url": "https://github.com/foxyproxy/browser-extension",
+    "description": "FoxyProxy is an open-source, advanced proxy management tool that completely replaces Chrome's limited proxying capabilities."
+  },
+  {
+    "category": "Web Proxy and Traffic Interception",
+    "name": "zaproxy",
+    "url": "https://github.com/zaproxy/zaproxy",
+    "description": "ZAP is what is known as a \u201cmanipulator-in-the-middle proxy.\u201d It stands between the tester\u2019s browser and the web application so that it can intercept and inspect messages sent between browser and web application, modify the contents if needed, and then forward those packets on to the destination."
+  },
+  {
+    "category": "Origin IP",
+    "name": "CloudRip",
+    "url": "https://github.com/staxsum/CloudRip",
+    "description": "A tool that helps you find the real IP addresses hiding behind Cloudflare by checking subdomains."
+  },
+  {
+    "category": "Origin IP",
+    "name": "hakoriginfinder",
+    "url": "https://github.com/hakluke/hakoriginfinder",
+    "description": "Tool for discovering the origin host behind a reverse proxy. Useful for bypassing WAFs and other reverse proxies."
+  },
+  {
+    "category": "Useful",
+    "name": "anew",
+    "url": "https://github.com/tomnomnom/anew",
+    "description": "A tool for adding new lines to files, skipping duplicates"
+  },
+  {
+    "category": "Useful",
+    "name": "gf",
+    "url": "https://github.com/tomnomnom/gf",
+    "description": "A wrapper around grep, to help you grep for things"
+  },
+  {
+    "category": "Useful",
+    "name": "uro",
+    "url": "https://github.com/s0md3v/uro",
+    "description": "declutters url lists for crawling/pentesting"
+  },
+  {
+    "category": "Useful",
+    "name": "unfurl",
+    "url": "https://github.com/tomnomnom/unfurl",
+    "description": "Pull out bits of URLs provided on stdin"
+  },
+  {
+    "category": "Useful",
+    "name": "qsreplace",
+    "url": "https://github.com/tomnomnom/qsreplace",
+    "description": "Accept URLs on stdin, replace all query string values with a user-supplied value"
+  },
+  {
+    "category": "Useful",
+    "name": "interactsh",
+    "url": "https://github.com/projectdiscovery/interactsh",
+    "description": "Interactsh is an open-source tool for detecting out-of-band interactions. It is a tool designed to detect vulnerabilities that cause external interactions."
+  },
+  {
+    "category": "Useful",
+    "name": "CyberChef",
+    "url": "https://github.com/gchq/CyberChef",
+    "description": "The Cyber Swiss Army Knife - a web app for encryption, encoding, compression and data analysis"
+  },
+  {
+    "category": "Useful",
+    "name": "notify",
+    "url": "https://github.com/projectdiscovery/notify",
+    "description": "Notify is a Go-based assistance package that enables you to stream the output of several tools (or read from a file) and publish it to a variety of supported platforms."
+  },
+  {
+    "category": "AI Agents",
+    "name": "shannon",
+    "url": "https://github.com/KeygraphHQ/shannon",
+    "description": "Fully autonomous AI hacker to find actual exploits in your web apps."
+  },
+  {
+    "category": "AI Agents",
+    "name": "PentestGPT",
+    "url": "https://github.com/GreyDGL/PentestGPT",
+    "description": "AI-powered penetration testing assistant that helps automate security testing workflows and vulnerability discovery."
+  },
+  {
+    "category": "AI Agents",
+    "name": "RF Swift",
+    "url": "https://github.com/PentHertz/RF-Swift",
+    "description": "A powerful multi-platform RF toolbox that deploys specialized radio tools in seconds on Linux, Windows, and macOS\u2014supporting x86_64, ARM64 (Raspberry Pi, Apple Silicon), and RISC-V architectures without disrupting your primary OS."
+  },
+  {
+    "category": "AI Agents",
+    "name": "bountyplz",
+    "url": "https://github.com/fransr/bountyplz",
+    "description": "Automated security reporting from markdown templates (HackerOne and Bugcrowd are currently the platforms supported)"
+  },
+  {
+    "category": "AI Agents",
+    "name": "PayloadsAllTheThings",
+    "url": "https://github.com/swisskyrepo/PayloadsAllTheThings",
+    "description": "A list of useful payloads and bypass for Web Application Security and Pentest/CTF"
+  },
+  {
+    "category": "AI Agents",
+    "name": "bounty-targets-data",
+    "url": "https://github.com/arkadiyt/bounty-targets-data",
+    "description": "This repo contains hourly-updated data dumps of bug bounty platform scopes (like Hackerone/Bugcrowd/Intigriti/etc) that are eligible for reports"
+  },
+  {
+    "category": "AI Agents",
+    "name": "android-security-awesome",
+    "url": "https://github.com/ashishb/android-security-awesome",
+    "description": "A collection of android security related resources"
+  },
+  {
+    "category": "AI Agents",
+    "name": "awesome-mobile-security",
+    "url": "https://github.com/vaib25vicky/awesome-mobile-security",
+    "description": "An effort to build a single place for all useful android and iOS security related stuff."
+  },
+  {
+    "category": "AI Agents",
+    "name": "awesome-vulnerable-apps",
+    "url": "https://github.com/vavkamil/awesome-vulnerable-apps",
+    "description": "Awesome Vulnerable Applications"
+  },
+  {
+    "category": "AI Agents",
+    "name": "SecLists",
+    "url": "https://github.com/danielmiessler/SecLists",
+    "description": "It's a collection of multiple types of lists used during security assessments, collected in one place. List types include usernames, passwords, URLs, sensitive data patterns, fuzzing payloads, web shells, and many more."
+  },
+  {
+    "category": "AI Agents",
+    "name": "asnmap",
+    "url": "https://github.com/projectdiscovery/asnmap",
+    "description": "Go CLI and Library for quickly mapping organization network ranges using ASN information."
+  },
+  {
+    "category": "AI Agents",
+    "name": "mapcidr",
+    "url": "https://github.com/projectdiscovery/mapcidr",
+    "description": "Utility program to perform multiple operations for a given subnet/CIDR ranges."
+  },
+  {
+    "category": "AI Agents",
+    "name": "BigBountyRecon",
+    "url": "https://github.com/Viralmaniar/BigBountyRecon",
+    "description": "BigBountyRecon tool utilises 58 different techniques using various Google dorks and open source tools to expedite the process of initial reconnaissance on the target organisation."
+  },
+  {
+    "category": "AI Agents",
+    "name": "Bypass bot detection",
+    "url": "https://github.com/portswigger/bypass-bot-detection",
+    "description": "Burp Suite extension that mutates ciphers to bypass TLS-fingerprint based bot detection."
+  },
+  {
+    "category": "AI Agents",
+    "name": "cvemap",
+    "url": "https://github.com/projectdiscovery/cvemap",
+    "description": "Modern CLI for exploring vulnerability data with powerful search, filtering, and analysis capabilities."
+  },
+  {
+    "category": "AI Agents",
+    "name": "cut-cdn",
+    "url": "https://github.com/ImAyrix/cut-cdn",
+    "description": "Removing CDN IPs from the list of IP addresses."
+  },
+  {
+    "category": "AI Agents",
+    "name": "ds_store_exp",
+    "url": "https://github.com/lijiejie/ds_store_exp",
+    "description": "A .DS_Store file disclosure exploit. It parses .DS_Store file and downloads files recursively."
+  }
+]

@@ -19,3 +19,37 @@ resolvers:
 webhook:
   discord: ""
   slack: ""
+
+# Local Ollama analysis (optional)
+ollama:
+  enabled: false
+  host: "http://127.0.0.1:11434"
+  model: "llama3.2:1b"
+  output: ""
+
+# Open-source Nuclei vulnerability scanning (optional)
+nuclei:
+  enabled: false
+  binary: "nuclei"
+  templates: []
+  severity: "low,medium,high,critical"
+  tags: ""
+  exclude_tags: "dos,fuzz,intrusive"
+  rate_limit: 50
+  concurrency: 25
+  output: ""
+  update_templates: false
+  headless: false
+  code: false
+  dast: false
+  include_aggressive: false
+
+# Advanced curl fingerprints and replay script export (optional)
+curl:
+  enabled: false
+  binary: "curl"
+  output: ""
+  user_agent: "did_finder/3.0"
+  headers: []
+  timeout: 15
+  follow_redirects: true

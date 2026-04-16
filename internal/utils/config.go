@@ -16,13 +16,47 @@ type Config struct {
 	Chaos          string `yaml:"chaos"`
 	PassiveTotal   string `yaml:"passivetotal"`
 	GitHub         string `yaml:"github"`
-	
+
 	Resolvers []string `yaml:"resolvers"`
-	
+
 	Webhook struct {
 		Discord string `yaml:"discord"`
 		Slack   string `yaml:"slack"`
 	} `yaml:"webhook"`
+
+	Ollama struct {
+		Enabled bool   `yaml:"enabled"`
+		Host    string `yaml:"host"`
+		Model   string `yaml:"model"`
+		Output  string `yaml:"output"`
+	} `yaml:"ollama"`
+
+	Nuclei struct {
+		Enabled           bool     `yaml:"enabled"`
+		Binary            string   `yaml:"binary"`
+		Templates         []string `yaml:"templates"`
+		Severity          string   `yaml:"severity"`
+		Tags              string   `yaml:"tags"`
+		ExcludeTags       string   `yaml:"exclude_tags"`
+		RateLimit         int      `yaml:"rate_limit"`
+		Concurrency       int      `yaml:"concurrency"`
+		Output            string   `yaml:"output"`
+		UpdateTemplates   bool     `yaml:"update_templates"`
+		Headless          bool     `yaml:"headless"`
+		Code              bool     `yaml:"code"`
+		DAST              bool     `yaml:"dast"`
+		IncludeAggressive bool     `yaml:"include_aggressive"`
+	} `yaml:"nuclei"`
+
+	Curl struct {
+		Enabled         bool     `yaml:"enabled"`
+		Binary          string   `yaml:"binary"`
+		Output          string   `yaml:"output"`
+		UserAgent       string   `yaml:"user_agent"`
+		Headers         []string `yaml:"headers"`
+		Timeout         int      `yaml:"timeout"`
+		FollowRedirects *bool    `yaml:"follow_redirects"`
+	} `yaml:"curl"`
 }
 
 func LoadConfig(path string) (*Config, error) {

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/yel-joul/did_finder/internal/sources"
+	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 type Source struct{}
@@ -44,8 +45,8 @@ func (s *Source) Run(ctx context.Context, domain string, results chan sources.Re
 		// Format is "ip,hostname" or just comma-separated values
 		parts := strings.Split(entry, ",")
 		for _, part := range parts {
-			part = strings.TrimSpace(part)
-			if strings.HasSuffix(part, domain) {
+			part = utils.NormalizeHostname(part)
+			if utils.BelongsToDomain(part, domain) {
 				if _, exists := seen[part]; !exists {
 					seen[part] = struct{}{}
 					results <- sources.Result{Source: s.Name(), Value: part}

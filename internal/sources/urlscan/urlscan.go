@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/yel-joul/did_finder/internal/sources"
+	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 type Source struct{}
@@ -49,8 +49,8 @@ func (s *Source) Run(ctx context.Context, domain string, results chan sources.Re
 	}
 
 	for _, r := range data.Results {
-		sub := r.Page.Domain
-		if sub != "" && strings.HasSuffix(sub, domain) {
+		sub := utils.NormalizeHostname(r.Page.Domain)
+		if utils.BelongsToDomain(sub, domain) {
 			results <- sources.Result{Source: s.Name(), Value: sub}
 		}
 	}

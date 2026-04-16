@@ -9,11 +9,13 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/yel-joul/did_finder/internal/active"
+	"github.com/yel-joul/did_finder/internal/ai"
 	"github.com/yel-joul/did_finder/internal/output"
 	"github.com/yel-joul/did_finder/internal/sources"
 	"github.com/yel-joul/did_finder/internal/sources/alienvault"
@@ -49,6 +51,9 @@ type Runner struct {
 	reportPorts      []output.PortEntry
 	reportCORS       []output.CORSEntry
 	reportRedirects  []output.RedirectEntry
+	reportVulns      []output.VulnEntry
+	reportCurl       []output.CurlEntry
+	reportAIAnalysis string
 }
 
 func NewRunner(options *Options) (*Runner, error) {
@@ -67,6 +72,98 @@ func NewRunner(options *Options) (*Runner, error) {
 	// Merge resolvers from config if none provided via CLI
 	if len(options.Resolvers) == 0 && len(config.Resolvers) > 0 {
 		options.Resolvers = config.Resolvers
+	}
+	if config.Ollama.Enabled {
+		options.Ollama = true
+	}
+	if options.OllamaHost == "" {
+		if config.Ollama.Host != "" {
+			options.OllamaHost = config.Ollama.Host
+		} else {
+			options.OllamaHost = ai.DefaultOllamaHost
+		}
+	}
+	if options.OllamaModel == "" {
+		if config.Ollama.Model != "" {
+			options.OllamaModel = config.Ollama.Model
+		} else {
+			options.OllamaModel = ai.DefaultOllamaModel
+		}
+	}
+	if options.OllamaOutput == "" {
+		options.OllamaOutput = config.Ollama.Output
+	}
+	if config.Nuclei.Enabled {
+		options.VulnScan = true
+	}
+	if options.NucleiBinary == "" || options.NucleiBinary == active.DefaultNucleiBinary {
+		if config.Nuclei.Binary != "" {
+			options.NucleiBinary = config.Nuclei.Binary
+		} else if options.NucleiBinary == "" {
+			options.NucleiBinary = active.DefaultNucleiBinary
+		}
+	}
+	if options.VulnTemplates == "" && len(config.Nuclei.Templates) > 0 {
+		options.VulnTemplates = strings.Join(config.Nuclei.Templates, ",")
+	}
+	if options.VulnSeverity == "low,medium,high,critical" && config.Nuclei.Severity != "" {
+		options.VulnSeverity = config.Nuclei.Severity
+	}
+	if options.VulnTags == "" {
+		options.VulnTags = config.Nuclei.Tags
+	}
+	if options.VulnExcludeTags == "dos,fuzz,intrusive" && config.Nuclei.ExcludeTags != "" {
+		options.VulnExcludeTags = config.Nuclei.ExcludeTags
+	}
+	if options.VulnRateLimit == 50 && config.Nuclei.RateLimit > 0 {
+		options.VulnRateLimit = config.Nuclei.RateLimit
+	}
+	if options.VulnConcurrency == 25 && config.Nuclei.Concurrency > 0 {
+		options.VulnConcurrency = config.Nuclei.Concurrency
+	}
+	if options.VulnOutput == "" {
+		options.VulnOutput = config.Nuclei.Output
+	}
+	if config.Nuclei.UpdateTemplates {
+		options.VulnUpdateTemplates = true
+	}
+	if config.Nuclei.Headless {
+		options.VulnHeadless = true
+	}
+	if config.Nuclei.Code {
+		options.VulnCode = true
+	}
+	if config.Nuclei.DAST {
+		options.VulnDAST = true
+	}
+	if config.Nuclei.IncludeAggressive {
+		options.VulnIncludeAggressive = true
+		options.VulnExcludeTags = ""
+	}
+	if config.Curl.Enabled {
+		options.Curl = true
+	}
+	if options.CurlBinary == "" || options.CurlBinary == active.DefaultCurlBinary {
+		if config.Curl.Binary != "" {
+			options.CurlBinary = config.Curl.Binary
+		} else if options.CurlBinary == "" {
+			options.CurlBinary = active.DefaultCurlBinary
+		}
+	}
+	if options.CurlExport == "" {
+		options.CurlExport = config.Curl.Output
+	}
+	if options.CurlUserAgent == "did_finder/3.0" && config.Curl.UserAgent != "" {
+		options.CurlUserAgent = config.Curl.UserAgent
+	}
+	if options.CurlHeaders == "" && len(config.Curl.Headers) > 0 {
+		options.CurlHeaders = strings.Join(config.Curl.Headers, ",")
+	}
+	if options.CurlTimeout == 15 && config.Curl.Timeout > 0 {
+		options.CurlTimeout = config.Curl.Timeout
+	}
+	if config.Curl.FollowRedirects != nil {
+		options.CurlFollow = *config.Curl.FollowRedirects
 	}
 
 	r := &Runner{
@@ -95,7 +192,7 @@ func (r *Runner) Run() error {
 		defer r.outFile.Close()
 	}
 
-	sourceCount := 13
+	sourceCount := 11
 	if r.config.VirusTotal != "" {
 		sourceCount++
 	}
@@ -166,6 +263,9 @@ func (r *Runner) printEnabledFeatures() {
 		{r.options.Screenshot, "Screenshots"},
 		{r.options.CORSCheck, "CORS Checker"},
 		{r.options.RedirectCheck, "Open Redirect Checker"},
+		{r.options.Ollama, fmt.Sprintf("Ollama Analysis (%s)", r.options.OllamaModel)},
+		{r.options.VulnScan, "Nuclei Vulnerability Scan"},
+		{r.options.Curl, "Advanced Curl Fingerprints"},
 	}
 	var enabled []string
 	for _, f := range features {
@@ -181,6 +281,19 @@ func (r *Runner) printEnabledFeatures() {
 	}
 	if r.options.HTMLReport != "" {
 		output.PrintInfo("HTML Report: %s", r.options.HTMLReport)
+	}
+	if r.options.Ollama {
+		output.PrintInfo("Ollama: %s @ %s", r.options.OllamaModel, r.options.OllamaHost)
+	}
+	if r.options.VulnScan {
+		mode := r.options.VulnSeverity
+		if mode == "" {
+			mode = "all default severities"
+		}
+		output.PrintInfo("Nuclei: %s (severity=%s, rate=%d/s)", r.options.NucleiBinary, mode, r.options.VulnRateLimit)
+	}
+	if r.options.Curl {
+		output.PrintInfo("Curl: %s (timeout=%ds, follow=%v)", r.options.CurlBinary, r.options.CurlTimeout, r.options.CurlFollow)
 	}
 }
 
@@ -272,7 +385,9 @@ func (r *Runner) runDomain(domain string) error {
 		if !r.options.Silent {
 			output.PrintInfo("Running CIDR reverse DNS scan...")
 		}
-		cidrSubs, err := active.ReverseDNSFromCIDR(ctx, domain, r.options.Threads)
+		cidrCtx, cidrCancel := r.phaseContext(2)
+		cidrSubs, err := active.ReverseDNSFromCIDR(cidrCtx, domain, r.options.Threads)
+		cidrCancel()
 		if err != nil {
 			if !r.options.Silent {
 				output.PrintWarning("CIDR scan error: %s", err)
@@ -294,7 +409,9 @@ func (r *Runner) runDomain(domain string) error {
 
 	// ── RECURSIVE ──
 	if r.options.Recursive {
-		allSubs = r.runRecursive(ctx, domain, allSubs)
+		recursiveCtx, recursiveCancel := r.phaseContext(2)
+		allSubs = r.runRecursive(recursiveCtx, domain, allSubs)
+		recursiveCancel()
 	}
 
 	// ── APPLY EXCLUDE PATTERNS ──
@@ -313,7 +430,8 @@ func (r *Runner) runDomain(domain string) error {
 		if !r.options.Silent {
 			output.PrintInfo("Scraping %d subdomains...", len(finalSubdomains))
 		}
-		scrapeChan := active.Scrape(ctx, domain, finalSubdomains, r.options.Threads)
+		scrapeCtx, scrapeCancel := r.phaseContext(2)
+		scrapeChan := active.Scrape(scrapeCtx, domain, finalSubdomains, r.options.Threads)
 		var count int
 		for sub := range scrapeChan {
 			if _, exists := allSubs[sub]; !exists {
@@ -322,6 +440,7 @@ func (r *Runner) runDomain(domain string) error {
 				count++
 			}
 		}
+		scrapeCancel()
 		r.stats.SetScraped(count)
 		if !r.options.Silent {
 			output.PrintInfo("Scraper found %d new subdomains", count)
@@ -334,7 +453,8 @@ func (r *Runner) runDomain(domain string) error {
 			output.PrintInfo("Grabbing SSL/TLS certificates...")
 		}
 		r.progress.StartPhase("Cert Grab", len(finalSubdomains))
-		certChan := active.GrabCerts(ctx, finalSubdomains, r.options.Threads)
+		certCtx, certCancel := r.phaseContext(2)
+		certChan := active.GrabCerts(certCtx, finalSubdomains, r.options.Threads)
 		var certResults []active.CertResult
 		for cr := range certChan {
 			r.progress.Increment()
@@ -347,6 +467,7 @@ func (r *Runner) runDomain(domain string) error {
 				output.PrintWarning("Expired cert: %s (expired %s)", cr.Subdomain, cr.NotAfter)
 			}
 		}
+		certCancel()
 		r.progress.Done()
 		// Extract SANs for new subdomains
 		sanSubs := active.ExtractSANSubdomains(certResults, domain)
@@ -418,43 +539,90 @@ func (r *Runner) runDomain(domain string) error {
 	}
 
 	// ── HTTP PROBING ──
+	var probedURLs []string
 	if r.options.Probe && len(liveList) > 0 {
-		r.runProbe(ctx, liveList)
+		probeCtx, probeCancel := r.phaseContext(2)
+		probedURLs = r.runProbe(probeCtx, liveList)
+		probeCancel()
 	}
 
 	// ── DNS ENUMERATION ──
 	if r.options.DNSEnum && len(liveList) > 0 {
-		r.runDNSEnum(ctx, liveList)
+		dnsCtx, dnsCancel := r.phaseContext(2)
+		r.runDNSEnum(dnsCtx, liveList)
+		dnsCancel()
 	}
 
 	// ── TAKEOVER CHECK ──
 	if r.options.Takeover && len(liveList) > 0 {
-		r.runTakeover(ctx, liveList)
+		takeoverCtx, takeoverCancel := r.phaseContext(2)
+		r.runTakeover(takeoverCtx, liveList)
+		takeoverCancel()
 	}
 
 	// ── WAF DETECTION ──
 	if r.options.WAFDetect && len(liveList) > 0 {
-		r.runWAF(ctx, liveList)
+		wafCtx, wafCancel := r.phaseContext(2)
+		r.runWAF(wafCtx, liveList)
+		wafCancel()
 	}
 
 	// ── PORT SCANNING ──
 	if r.options.PortScan && len(liveList) > 0 {
-		r.runPortScan(ctx, liveList)
+		portCtx, portCancel := r.phaseContext(2)
+		r.runPortScan(portCtx, liveList)
+		portCancel()
 	}
 
 	// ── CORS CHECK ──
 	if r.options.CORSCheck && len(liveList) > 0 {
-		r.runCORSCheck(ctx, liveList)
+		corsCtx, corsCancel := r.phaseContext(2)
+		r.runCORSCheck(corsCtx, liveList)
+		corsCancel()
 	}
 
 	// ── OPEN REDIRECT CHECK ──
 	if r.options.RedirectCheck && len(liveList) > 0 {
-		r.runRedirectCheck(ctx, liveList)
+		redirectCtx, redirectCancel := r.phaseContext(2)
+		r.runRedirectCheck(redirectCtx, liveList)
+		redirectCancel()
+	}
+
+	curlTargets := nucleiTargets(liveList, probedURLs)
+	if r.options.Curl && len(curlTargets) > 0 {
+		r.runCurlFingerprints(ctx, curlTargets)
+	}
+
+	// ── OPEN-SOURCE VULNERABILITY SCAN ──
+	if r.options.VulnScan && len(curlTargets) > 0 {
+		r.runVulnScan(ctx, curlTargets)
 	}
 
 	// ── SCREENSHOTS ──
 	if r.options.Screenshot && len(liveList) > 0 {
-		r.runScreenshots(ctx, liveList)
+		screenshotCtx, screenshotCancel := r.phaseContext(2)
+		r.runScreenshots(screenshotCtx, liveList)
+		screenshotCancel()
+	}
+
+	if r.options.CurlExport != "" && len(curlTargets) > 0 {
+		if err := r.writeCurlReplay(domain, curlTargets); err != nil {
+			if !r.options.Silent {
+				output.PrintWarning("Could not write curl replay script: %s", err)
+			}
+		}
+	}
+
+	// ── LOCAL AI ANALYSIS ──
+	if r.options.Ollama {
+		analysis, err := r.runOllamaAnalysis(domain, liveList)
+		if err != nil {
+			if !r.options.Silent {
+				output.PrintWarning("Ollama analysis skipped: %s", err)
+			}
+		} else {
+			r.reportAIAnalysis = analysis
+		}
 	}
 
 	// ── HTML REPORT ──
@@ -463,16 +631,20 @@ func (r *Runner) runDomain(domain string) error {
 			output.PrintInfo("Generating HTML report: %s", r.options.HTMLReport)
 		}
 		reportData := output.HTMLReportData{
-			Domain:        domain,
-			Subdomains:    r.reportSubdomains,
-			TakeoverVulns: r.reportTakeovers,
-			WAFDetections: r.reportWAFs,
-			CertInfos:     r.reportCerts,
-			PortResults:   r.reportPorts,
-			CORSFindings:  r.reportCORS,
+			Domain:           domain,
+			Subdomains:       r.reportSubdomains,
+			TakeoverVulns:    r.reportTakeovers,
+			WAFDetections:    r.reportWAFs,
+			CertInfos:        r.reportCerts,
+			PortResults:      r.reportPorts,
+			CORSFindings:     r.reportCORS,
 			RedirectFindings: r.reportRedirects,
-			Stats:         r.stats,
-			ScanTime:      time.Now(),
+			VulnFindings:     r.reportVulns,
+			CurlResults:      r.reportCurl,
+			AIAnalysis:       r.reportAIAnalysis,
+			AIModel:          r.options.OllamaModel,
+			Stats:            r.stats,
+			ScanTime:         time.Now(),
 		}
 		if err := output.GenerateHTMLReport(reportData, r.options.HTMLReport); err != nil {
 			output.PrintError("Report generation failed: %s", err)
@@ -496,6 +668,17 @@ func (r *Runner) runDomain(domain string) error {
 	}
 
 	return nil
+}
+
+func (r *Runner) phaseContext(multiplier int) (context.Context, context.CancelFunc) {
+	if multiplier <= 0 {
+		multiplier = 1
+	}
+	timeout := time.Duration(r.options.Timeout*multiplier) * time.Second
+	if timeout < 30*time.Second {
+		timeout = 30 * time.Second
+	}
+	return context.WithTimeout(context.Background(), timeout)
 }
 
 // ──────────── EXCLUDE ────────────
@@ -574,8 +757,8 @@ func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[s
 			if result.Value == "" {
 				continue
 			}
-			sub := strings.ToLower(strings.TrimSpace(result.Value))
-			if !strings.HasSuffix(sub, domain) {
+			sub := utils.NormalizeHostname(result.Value)
+			if !utils.BelongsToDomain(sub, domain) {
 				continue
 			}
 			mu.Lock()
@@ -647,17 +830,21 @@ func (r *Runner) runRecursive(ctx context.Context, baseDomain string, allSubs ma
 
 // ──────────── PROBE ────────────
 
-func (r *Runner) runProbe(ctx context.Context, subdomains []string) {
+func (r *Runner) runProbe(ctx context.Context, subdomains []string) []string {
 	if !r.options.Silent {
 		output.PrintInfo("HTTP Probing %d hosts...", len(subdomains))
 	}
 	r.progress.StartPhase("HTTP Probe", len(subdomains))
 	probeChan := active.Probe(ctx, subdomains, r.options.Threads)
 	var probed int
+	var urls []string
 	for result := range probeChan {
 		probed++
 		r.progress.Increment()
 		techStr := strings.Join(result.Technologies, ",")
+		if result.URL != "" {
+			urls = append(urls, result.URL)
+		}
 
 		// Update report data
 		for i := range r.reportSubdomains {
@@ -692,6 +879,7 @@ func (r *Runner) runProbe(ctx context.Context, subdomains []string) {
 	if !r.options.Silent {
 		output.PrintSuccess("Probed %d web services", probed)
 	}
+	return urls
 }
 
 // ──────────── DNS ENUM ────────────
@@ -845,10 +1033,10 @@ func (r *Runner) runCORSCheck(ctx context.Context, subdomains []string) {
 		if result.Vulnerable {
 			vulnCount++
 			r.reportCORS = append(r.reportCORS, output.CORSEntry{
-				Subdomain:  result.Subdomain,
-				Origin:     result.Origin,
-				Type:       result.Type,
-				WithCreds:  result.AllowCredentials,
+				Subdomain: result.Subdomain,
+				Origin:    result.Origin,
+				Type:      result.Type,
+				WithCreds: result.AllowCredentials,
 			})
 			if !r.options.Silent {
 				fmt.Printf("%s %s [%s] Origin: %s\n",
@@ -905,6 +1093,333 @@ func (r *Runner) runRedirectCheck(ctx context.Context, subdomains []string) {
 	}
 }
 
+// ──────────── VULNERABILITY SCAN ────────────
+
+func (r *Runner) runVulnScan(ctx context.Context, targets []string) {
+	targets = uniqueTargets(targets)
+	if len(targets) == 0 {
+		return
+	}
+	if !r.options.Silent {
+		output.PrintInfo("Running Nuclei vulnerability scan on %d targets...", len(targets))
+	}
+
+	scanTimeout := time.Duration(r.options.Timeout) * time.Second
+	if scanTimeout < 5*time.Minute {
+		scanTimeout = 5 * time.Minute
+	}
+	scanCtx, cancel := context.WithTimeout(context.Background(), scanTimeout)
+	defer cancel()
+
+	findings, err := active.RunNuclei(scanCtx, targets, active.NucleiOptions{
+		Binary:          r.options.NucleiBinary,
+		Templates:       splitCommaList(r.options.VulnTemplates),
+		Severity:        r.options.VulnSeverity,
+		Tags:            r.options.VulnTags,
+		ExcludeTags:     r.options.VulnExcludeTags,
+		RateLimit:       r.options.VulnRateLimit,
+		Concurrency:     r.options.VulnConcurrency,
+		Timeout:         r.options.Timeout,
+		Proxy:           r.options.Proxy,
+		UpdateTemplates: r.options.VulnUpdateTemplates,
+		Headless:        r.options.VulnHeadless,
+		Code:            r.options.VulnCode,
+		DAST:            r.options.VulnDAST,
+	})
+	if err != nil {
+		if !r.options.Silent {
+			output.PrintWarning("Nuclei scan skipped or incomplete: %s", err)
+		}
+		if len(findings) == 0 {
+			return
+		}
+	}
+
+	for _, finding := range findings {
+		entry := output.VulnEntry{
+			Target:     findingTarget(finding),
+			TemplateID: finding.TemplateID,
+			Name:       finding.Info.Name,
+			Severity:   finding.Info.Severity,
+			Type:       finding.Type,
+			MatchedAt:  finding.MatchedAt,
+			Tags:       strings.Join(finding.Info.Tags, ","),
+			CVEs:       strings.Join(finding.Info.Classification.CVEID, ","),
+		}
+		r.reportVulns = append(r.reportVulns, entry)
+
+		if r.options.JSON {
+			data, _ := json.Marshal(finding)
+			r.writeOutput(string(data))
+		} else if r.options.CSV {
+			r.writeOutput(fmt.Sprintf("vulnerability,%s,%s,%s,%s,%s",
+				entry.Target, entry.Severity, entry.TemplateID, entry.Name, entry.MatchedAt))
+		} else if !r.options.Silent {
+			fmt.Printf("%s [%s] %s %s (%s)\n",
+				output.Colorize(output.Red, "[VULN]"),
+				output.Colorize(severityColor(entry.Severity), strings.ToUpper(entry.Severity)),
+				output.Colorize(output.Green, entry.Target),
+				entry.Name,
+				entry.TemplateID)
+		}
+	}
+
+	if r.options.VulnOutput != "" {
+		if err := writeNucleiFindings(r.options.VulnOutput, findings); err != nil {
+			if !r.options.Silent {
+				output.PrintWarning("Could not write Nuclei findings: %s", err)
+			}
+		} else if !r.options.Silent {
+			output.PrintSuccess("Nuclei findings saved to %s", r.options.VulnOutput)
+		}
+	}
+
+	if !r.options.Silent {
+		output.PrintSuccess("Nuclei reported %d findings", len(findings))
+	}
+}
+
+func nucleiTargets(liveList, probedURLs []string) []string {
+	if len(probedURLs) > 0 {
+		return uniqueTargets(probedURLs)
+	}
+	return uniqueTargets(liveList)
+}
+
+func findingTarget(f active.NucleiFinding) string {
+	for _, value := range []string{f.MatchedAt, f.URL, f.Host} {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return f.TemplateID
+}
+
+func severityColor(severity string) string {
+	switch strings.ToLower(severity) {
+	case "critical", "high":
+		return output.Red
+	case "medium":
+		return output.Yellow
+	case "low":
+		return output.Cyan
+	default:
+		return output.Dim
+	}
+}
+
+func writeNucleiFindings(path string, findings []active.NucleiFinding) error {
+	if dir := filepath.Dir(path); dir != "." && dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	enc := json.NewEncoder(f)
+	for _, finding := range findings {
+		if len(finding.Raw) > 0 {
+			if _, err := f.Write(finding.Raw); err != nil {
+				return err
+			}
+			if _, err := f.WriteString("\n"); err != nil {
+				return err
+			}
+			continue
+		}
+		if err := enc.Encode(finding); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func uniqueTargets(values []string) []string {
+	seen := make(map[string]struct{})
+	var out []string
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func splitCommaList(value string) []string {
+	var out []string
+	for _, part := range strings.Split(value, ",") {
+		if part = strings.TrimSpace(part); part != "" {
+			out = append(out, part)
+		}
+	}
+	return out
+}
+
+// ──────────── CURL ────────────
+
+func (r *Runner) runCurlFingerprints(ctx context.Context, targets []string) {
+	targets = uniqueTargets(targets)
+	if len(targets) == 0 {
+		return
+	}
+	if !r.options.Silent {
+		output.PrintInfo("Running curl fingerprints on %d targets...", len(targets))
+	}
+
+	batches := len(targets)/maxInt(r.options.Threads, 1) + 1
+	curlCtx, cancel := context.WithTimeout(context.Background(), time.Duration(maxInt(r.options.CurlTimeout, 1)*batches+30)*time.Second)
+	defer cancel()
+
+	curlChan := active.CurlProbe(curlCtx, targets, active.CurlOptions{
+		Binary:          r.options.CurlBinary,
+		Timeout:         r.options.CurlTimeout,
+		ConnectTimeout:  r.options.CurlTimeout,
+		Threads:         r.options.Threads,
+		UserAgent:       r.options.CurlUserAgent,
+		Proxy:           r.options.Proxy,
+		Headers:         splitCommaList(r.options.CurlHeaders),
+		FollowRedirects: r.options.CurlFollow,
+	})
+
+	for result := range curlChan {
+		entry := output.CurlEntry{
+			Target:       result.Target,
+			EffectiveURL: result.EffectiveURL,
+			Status:       result.HTTPCode,
+			ContentType:  result.ContentType,
+			RemoteIP:     result.RemoteIP,
+			Redirects:    result.NumRedirects,
+			TimeTotal:    result.TimeTotal,
+			Error:        result.Error,
+		}
+		r.reportCurl = append(r.reportCurl, entry)
+
+		if r.options.JSON {
+			data, _ := json.Marshal(result)
+			r.writeOutput(string(data))
+		} else if r.options.CSV {
+			r.writeOutput(fmt.Sprintf("curl,%s,%s,%d,%s,%s,%.3f,%s",
+				entry.Target, entry.EffectiveURL, entry.Status, entry.ContentType, entry.RemoteIP, entry.TimeTotal, entry.Error))
+		} else if !r.options.Silent {
+			if result.Error != "" {
+				fmt.Printf("%s %s %s\n", output.Colorize(output.Yellow, "[CURL]"), result.Target, result.Error)
+				continue
+			}
+			fmt.Printf("%s %s [%d] [%s] [%.3fs] [%s]\n",
+				output.Colorize(output.Cyan, "[CURL]"),
+				output.Colorize(output.Green, result.EffectiveURL),
+				result.HTTPCode,
+				result.ContentType,
+				result.TimeTotal,
+				result.RemoteIP)
+		}
+	}
+}
+
+func (r *Runner) writeCurlReplay(domain string, targets []string) error {
+	path := strings.ReplaceAll(r.options.CurlExport, "{domain}", domain)
+	if strings.HasSuffix(path, string(os.PathSeparator)) {
+		path = filepath.Join(path, domain+"-curl-replay.sh")
+	}
+	if dir := filepath.Dir(path); dir != "." && dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	fmt.Fprintln(f, "#!/usr/bin/env bash")
+	fmt.Fprintln(f, "set -euo pipefail")
+	fmt.Fprintf(f, "# Generated by did_finder for %s\n\n", domain)
+
+	for _, target := range uniqueTargets(targets) {
+		fmt.Fprintf(f, "%s\n", r.curlCommand(target))
+	}
+	for _, finding := range r.reportVulns {
+		target := finding.MatchedAt
+		if target == "" {
+			target = finding.Target
+		}
+		if target != "" {
+			fmt.Fprintf(f, "\n# Nuclei: %s %s %s\n", finding.Severity, finding.TemplateID, finding.Name)
+			fmt.Fprintf(f, "%s\n", r.curlCommand(target))
+		}
+	}
+	for _, redirect := range r.reportRedirects {
+		if redirect.URL != "" {
+			fmt.Fprintf(f, "\n# Open redirect check: %s\n", redirect.Parameter)
+			fmt.Fprintf(f, "%s\n", r.curlCommand(redirect.URL))
+		}
+	}
+
+	if !r.options.Silent {
+		output.PrintSuccess("Curl replay script saved to %s", path)
+	}
+	return nil
+}
+
+func (r *Runner) curlCommand(target string) string {
+	args := []string{
+		r.options.CurlBinary,
+		"-k",
+		"-sS",
+		"--compressed",
+		"--path-as-is",
+		"-i",
+		"--max-time", fmt.Sprintf("%d", maxInt(r.options.CurlTimeout, 1)),
+		"-A", r.options.CurlUserAgent,
+	}
+	if r.options.CurlFollow {
+		args = append(args, "-L")
+	}
+	if r.options.Proxy != "" {
+		args = append(args, "--proxy", r.options.Proxy)
+	}
+	for _, header := range splitCommaList(r.options.CurlHeaders) {
+		args = append(args, "-H", header)
+	}
+	args = append(args, target)
+
+	quoted := make([]string, 0, len(args))
+	for _, arg := range args {
+		quoted = append(quoted, shellQuote(arg))
+	}
+	return strings.Join(quoted, " ")
+}
+
+func shellQuote(value string) string {
+	if value == "" {
+		return "''"
+	}
+	if !strings.ContainsAny(value, " \t\n'\"\\$`!*?[]{}()<>|&;") {
+		return value
+	}
+	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 // ──────────── SCREENSHOTS ────────────
 
 func (r *Runner) runScreenshots(ctx context.Context, subdomains []string) {
@@ -935,6 +1450,347 @@ func (r *Runner) runScreenshots(ctx context.Context, subdomains []string) {
 	if !r.options.Silent {
 		output.PrintSuccess("Captured %d screenshots → %s", captured, screenshotDir)
 	}
+}
+
+// ──────────── OLLAMA ────────────
+
+func (r *Runner) runOllamaAnalysis(domain string, liveList []string) (string, error) {
+	if !r.options.Silent {
+		output.PrintInfo("Generating local Ollama analysis with %s...", r.options.OllamaModel)
+	}
+
+	timeout := time.Duration(r.options.Timeout) * time.Second
+	if timeout < 2*time.Minute {
+		timeout = 2 * time.Minute
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client := ai.NewOllamaClient(r.options.OllamaHost, r.options.OllamaModel)
+	client.HTTPClient.Timeout = timeout
+	hasModel, err := client.HasModel(ctx)
+	if err != nil {
+		return "", err
+	}
+	if !hasModel {
+		return "", fmt.Errorf("model %q is not installed; run: ollama pull %s", r.options.OllamaModel, r.options.OllamaModel)
+	}
+
+	analysis, err := client.Generate(ctx, r.buildOllamaPrompt(domain, liveList))
+	if err != nil {
+		return "", err
+	}
+
+	if r.options.OllamaOutput != "" {
+		if err := r.writeOllamaAnalysis(domain, analysis); err != nil {
+			return "", err
+		}
+	}
+
+	if !r.options.Silent && !r.options.JSON && !r.options.CSV {
+		fmt.Println()
+		fmt.Printf("%s Ollama analysis (%s)\n", output.Colorize(output.Magenta, "[AI]"), r.options.OllamaModel)
+		fmt.Println(analysis)
+		fmt.Println()
+	}
+
+	return analysis, nil
+}
+
+func (r *Runner) buildOllamaPrompt(domain string, liveList []string) string {
+	var b strings.Builder
+
+	subdomains := sampleSubdomains(liveList, r.reportSubdomains, 60)
+	vulnTakeovers := countVulnerableTakeovers(r.reportTakeovers)
+	expiredCerts := countExpiredCerts(r.reportCerts)
+	openPortHosts := countPortHosts(r.reportPorts)
+	highRiskVulns := countHighRiskVulns(r.reportVulns)
+
+	fmt.Fprintf(&b, "You are helping review authorized did_finder recon results for %s.\n", domain)
+	fmt.Fprintln(&b, "Write concise Markdown for a security operator.")
+	fmt.Fprintln(&b, "Prioritize confirmed risks first, then likely next steps. Do not invent findings that are not in the data.")
+	fmt.Fprintln(&b)
+	fmt.Fprintln(&b, "Summary:")
+	fmt.Fprintf(&b, "- Subdomains collected: %d\n", len(r.reportSubdomains))
+	fmt.Fprintf(&b, "- Live or candidate hosts: %d\n", len(liveList))
+	fmt.Fprintf(&b, "- Potential takeover vulnerabilities: %d\n", vulnTakeovers)
+	fmt.Fprintf(&b, "- CORS findings: %d\n", len(r.reportCORS))
+	fmt.Fprintf(&b, "- Open redirect findings: %d\n", len(r.reportRedirects))
+	fmt.Fprintf(&b, "- Nuclei vulnerability findings: %d\n", len(r.reportVulns))
+	fmt.Fprintf(&b, "- High/critical vulnerability findings: %d\n", highRiskVulns)
+	fmt.Fprintf(&b, "- WAF detections: %d\n", len(r.reportWAFs))
+	fmt.Fprintf(&b, "- Hosts with open ports: %d\n", openPortHosts)
+	fmt.Fprintf(&b, "- Curl fingerprints collected: %d\n", len(r.reportCurl))
+	fmt.Fprintf(&b, "- Certificates checked: %d\n", len(r.reportCerts))
+	fmt.Fprintf(&b, "- Expired certificates: %d\n", expiredCerts)
+	fmt.Fprintln(&b)
+
+	writeSubdomainSample(&b, "Subdomain sample", subdomains)
+	writeTakeoverFindings(&b, r.reportTakeovers)
+	writeCORSFindings(&b, r.reportCORS)
+	writeRedirectFindings(&b, r.reportRedirects)
+	writeVulnFindings(&b, r.reportVulns)
+	writePortFindings(&b, r.reportPorts)
+	writeCurlFindings(&b, r.reportCurl)
+	writeWAFFindings(&b, r.reportWAFs)
+	writeCertFindings(&b, r.reportCerts)
+
+	fmt.Fprintln(&b)
+	fmt.Fprintln(&b, "Return these sections only:")
+	fmt.Fprintln(&b, "1. Highest priority findings")
+	fmt.Fprintln(&b, "2. Interesting exposure patterns")
+	fmt.Fprintln(&b, "3. Recommended next commands or validations")
+
+	return b.String()
+}
+
+func (r *Runner) writeOllamaAnalysis(domain, analysis string) error {
+	path := strings.ReplaceAll(r.options.OllamaOutput, "{domain}", domain)
+	if strings.HasSuffix(path, string(os.PathSeparator)) {
+		path = filepath.Join(path, domain+"-ollama-analysis.md")
+	}
+	if dir := filepath.Dir(path); dir != "." && dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+
+	flags := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+	if len(r.options.Domains) > 1 && !strings.Contains(r.options.OllamaOutput, "{domain}") {
+		flags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
+	}
+
+	f, err := os.OpenFile(path, flags, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if _, err := fmt.Fprintf(f, "# Ollama analysis for %s\n\n%s\n\n", domain, analysis); err != nil {
+		return err
+	}
+	if !r.options.Silent {
+		output.PrintSuccess("Ollama analysis saved to %s", path)
+	}
+	return nil
+}
+
+func sampleSubdomains(liveList []string, entries []output.SubdomainEntry, limit int) []string {
+	seen := make(map[string]struct{})
+	var values []string
+	for _, sub := range liveList {
+		if sub == "" {
+			continue
+		}
+		if _, ok := seen[sub]; !ok {
+			seen[sub] = struct{}{}
+			values = append(values, sub)
+		}
+	}
+	for _, entry := range entries {
+		if entry.Name == "" {
+			continue
+		}
+		if _, ok := seen[entry.Name]; !ok {
+			seen[entry.Name] = struct{}{}
+			values = append(values, entry.Name)
+		}
+	}
+	sort.Strings(values)
+	if len(values) > limit {
+		return values[:limit]
+	}
+	return values
+}
+
+func writeSubdomainSample(b *strings.Builder, label string, values []string) {
+	fmt.Fprintf(b, "%s:\n", label)
+	if len(values) == 0 {
+		fmt.Fprintln(b, "- none")
+		return
+	}
+	for _, value := range values {
+		fmt.Fprintf(b, "- %s\n", value)
+	}
+}
+
+func writeTakeoverFindings(b *strings.Builder, findings []output.TakeoverEntry) {
+	fmt.Fprintln(b, "\nTakeover findings:")
+	wrote := 0
+	for _, finding := range findings {
+		if !finding.Vuln {
+			continue
+		}
+		fmt.Fprintf(b, "- %s -> %s (%s)\n", finding.Subdomain, finding.CNAME, finding.Service)
+		wrote++
+		if wrote >= 25 {
+			break
+		}
+	}
+	if wrote == 0 {
+		fmt.Fprintln(b, "- none")
+	}
+}
+
+func writeCORSFindings(b *strings.Builder, findings []output.CORSEntry) {
+	fmt.Fprintln(b, "\nCORS findings:")
+	if len(findings) == 0 {
+		fmt.Fprintln(b, "- none")
+		return
+	}
+	for i, finding := range findings {
+		if i >= 25 {
+			break
+		}
+		fmt.Fprintf(b, "- %s: %s origin=%s credentials=%v\n", finding.Subdomain, finding.Type, finding.Origin, finding.WithCreds)
+	}
+}
+
+func writeRedirectFindings(b *strings.Builder, findings []output.RedirectEntry) {
+	fmt.Fprintln(b, "\nOpen redirect findings:")
+	if len(findings) == 0 {
+		fmt.Fprintln(b, "- none")
+		return
+	}
+	for i, finding := range findings {
+		if i >= 25 {
+			break
+		}
+		fmt.Fprintf(b, "- %s: parameter=%s location=%s\n", finding.Subdomain, finding.Parameter, finding.Location)
+	}
+}
+
+func writeVulnFindings(b *strings.Builder, findings []output.VulnEntry) {
+	fmt.Fprintln(b, "\nNuclei vulnerability findings:")
+	if len(findings) == 0 {
+		fmt.Fprintln(b, "- none")
+		return
+	}
+	for i, finding := range findings {
+		if i >= 40 {
+			break
+		}
+		cves := finding.CVEs
+		if cves == "" {
+			cves = "no CVE listed"
+		}
+		fmt.Fprintf(b, "- [%s] %s: %s (%s, %s)\n", finding.Severity, finding.Target, finding.Name, finding.TemplateID, cves)
+	}
+}
+
+func writePortFindings(b *strings.Builder, findings []output.PortEntry) {
+	fmt.Fprintln(b, "\nOpen port findings:")
+	wrote := 0
+	for _, finding := range findings {
+		if len(finding.OpenPorts) == 0 {
+			continue
+		}
+		if wrote >= 40 {
+			break
+		}
+		portStrs := make([]string, 0, len(finding.OpenPorts))
+		for _, port := range finding.OpenPorts {
+			portStrs = append(portStrs, fmt.Sprintf("%d", port))
+		}
+		fmt.Fprintf(b, "- %s: %s\n", finding.Subdomain, strings.Join(portStrs, ","))
+		wrote++
+	}
+	if wrote == 0 {
+		fmt.Fprintln(b, "- none")
+	}
+}
+
+func writeCurlFindings(b *strings.Builder, findings []output.CurlEntry) {
+	fmt.Fprintln(b, "\nCurl fingerprint notes:")
+	if len(findings) == 0 {
+		fmt.Fprintln(b, "- none")
+		return
+	}
+	for i, finding := range findings {
+		if i >= 30 {
+			break
+		}
+		if finding.Error != "" {
+			fmt.Fprintf(b, "- %s: curl error=%s\n", finding.Target, finding.Error)
+			continue
+		}
+		fmt.Fprintf(b, "- %s -> %s status=%d type=%s ip=%s time=%.3fs redirects=%d\n",
+			finding.Target, finding.EffectiveURL, finding.Status, finding.ContentType,
+			finding.RemoteIP, finding.TimeTotal, finding.Redirects)
+	}
+}
+
+func writeWAFFindings(b *strings.Builder, findings []output.WAFEntry) {
+	fmt.Fprintln(b, "\nWAF detections:")
+	if len(findings) == 0 {
+		fmt.Fprintln(b, "- none")
+		return
+	}
+	for i, finding := range findings {
+		if i >= 25 {
+			break
+		}
+		fmt.Fprintf(b, "- %s: %s (%s)\n", finding.Subdomain, finding.WAF, finding.Evidence)
+	}
+}
+
+func writeCertFindings(b *strings.Builder, findings []output.CertEntry) {
+	fmt.Fprintln(b, "\nCertificate notes:")
+	wrote := 0
+	for _, finding := range findings {
+		if !finding.Expired {
+			continue
+		}
+		if wrote >= 25 {
+			break
+		}
+		fmt.Fprintf(b, "- expired: %s issuer=%s subject=%s\n", finding.Subdomain, finding.Issuer, finding.Subject)
+		wrote++
+	}
+	if wrote == 0 {
+		fmt.Fprintln(b, "- no expired certificates reported")
+	}
+}
+
+func countVulnerableTakeovers(findings []output.TakeoverEntry) int {
+	count := 0
+	for _, finding := range findings {
+		if finding.Vuln {
+			count++
+		}
+	}
+	return count
+}
+
+func countExpiredCerts(findings []output.CertEntry) int {
+	count := 0
+	for _, finding := range findings {
+		if finding.Expired {
+			count++
+		}
+	}
+	return count
+}
+
+func countPortHosts(findings []output.PortEntry) int {
+	count := 0
+	for _, finding := range findings {
+		if len(finding.OpenPorts) > 0 {
+			count++
+		}
+	}
+	return count
+}
+
+func countHighRiskVulns(findings []output.VulnEntry) int {
+	count := 0
+	for _, finding := range findings {
+		switch strings.ToLower(finding.Severity) {
+		case "critical", "high":
+			count++
+		}
+	}
+	return count
 }
 
 // ──────────── OUTPUT ────────────

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/yel-joul/did_finder/internal/sources"
+	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 type Source struct {
@@ -82,8 +82,8 @@ func (s *Source) Run(ctx context.Context, domain string, results chan sources.Re
 			for _, tm := range item.TextMatches {
 				matches := subRe.FindAllString(tm.Fragment, -1)
 				for _, match := range matches {
-					match = strings.ToLower(strings.TrimSpace(match))
-					if strings.HasSuffix(match, domain) {
+					match = utils.NormalizeHostname(match)
+					if utils.BelongsToDomain(match, domain) {
 						if _, exists := seen[match]; !exists {
 							seen[match] = struct{}{}
 							results <- sources.Result{Source: s.Name(), Value: match}

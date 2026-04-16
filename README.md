@@ -40,12 +40,16 @@
 - 🔌 **Port Scanning** — Top 100 ports TCP connect scan
 - 🔓 **CORS Misconfiguration** — Reflected origin, null origin, wildcard+creds
 - ↪️ **Open Redirect** — 30+ redirect parameters tested
+- 🧪 **Vulnerability Scanning** — Open-source Nuclei templates for CVEs, exposures, misconfigs, and tech-specific checks
+- 🧵 **Advanced Curl Fingerprints** — Open-source curl metrics, redirects, remote IPs, content types, and replay scripts
 - 📸 **Screenshots** — Headless Chrome/Chromium capture
 - 🔁 **Recursive Enumeration** — Configurable depth
 
 ### Output & Reporting
 - 📊 **HTML Report** — Beautiful dark-themed report with all findings
 - 📝 **JSON / CSV / Plain** — Machine-readable output formats
+- 🤖 **Local Ollama Analysis** — Optional AI triage and next-step recommendations
+- 🧰 **Bug Bounty Tool Catalog** — Embedded `awesome-bugbounty-tools` search, recommendations, and PATH checks
 - 💾 **Resume** — Checkpoint and resume interrupted scans
 - 📣 **Webhooks** — Discord & Slack notifications
 - 📈 **Progress Bar** — Real-time scan progress
@@ -64,6 +68,22 @@ go install github.com/yel-joul/did_finder/cmd/did_finder@latest
 git clone https://github.com/yel-joul/did_finder.git
 cd did_finder
 go build -o did_finder ./cmd/did_finder
+```
+
+### Workstation Setup
+```bash
+# Build and install did_finder into your Go bin directory
+make install
+
+# Pull the default local AI model
+make ollama-pull
+
+# Install and update the open-source Nuclei scanner/templates
+make nuclei-install
+make nuclei-update
+
+# Check Go, did_finder, Ollama, Nuclei, config, and screenshot dependencies
+make doctor
 ```
 
 ---
@@ -121,6 +141,25 @@ did_finder -d example.com -brute -w /path/to/wordlist.txt
 
 # Screenshots (requires Chrome/Chromium)
 did_finder -d example.com -resolve -screenshot -oD ./results
+
+# Local AI analysis with Ollama (requires a pulled model)
+did_finder -d example.com -all -ollama -ollama-model llama3.2:1b -report report.html
+did_finder -d example.com -takeover -cors -redirect -ollama -ollama-out output/example-ai.md
+
+# Open-source vulnerability scanning with Nuclei
+did_finder -d example.com -resolve -probe -vuln -report report.html
+did_finder -d example.com -all -vuln-all -vuln-update -vuln-output output/example-nuclei.jsonl
+did_finder -d example.com -vuln -vuln-tags cve,rce -vuln-severity critical,high
+
+# Advanced curl fingerprints and replay commands
+did_finder -d example.com -resolve -probe -curl -report report.html
+did_finder -d example.com -all -curl-export output/{domain}-replay.sh
+did_finder -d example.com -curl -curl-headers "X-Bug-Bounty: did_finder"
+
+# Merged awesome-bugbounty-tools catalog
+did_finder -tools
+did_finder -tools-search takeover -tools-check
+did_finder -tools-recommend -all -tools-check
 ```
 
 ---
@@ -165,6 +204,38 @@ did_finder -d example.com -resolve -screenshot -oD ./results
 | `-report` | Generate HTML report | |
 | `-config` | Config file path | |
 | `-proxy` | HTTP/SOCKS5 proxy | |
+| `-ollama` | Analyze findings with local Ollama | `false` |
+| `-ollama-host` | Ollama host URL | `http://127.0.0.1:11434` |
+| `-ollama-model` | Ollama model name | `llama3.2:1b` |
+| `-ollama-out` | Write Ollama Markdown analysis to file | |
+| `-vuln` | Run open-source Nuclei vulnerability scanning | `false` |
+| `-vuln-all` | Run all default Nuclei template severities | `false` |
+| `-vuln-templates` | Comma-separated Nuclei template paths | |
+| `-vuln-severity` | Nuclei severity filter | `low,medium,high,critical` |
+| `-vuln-tags` | Nuclei tags to include | |
+| `-vuln-exclude-tags` | Nuclei tags to exclude | `dos,fuzz,intrusive` |
+| `-vuln-rate` | Nuclei maximum requests per second | `50` |
+| `-vuln-concurrency` | Nuclei template concurrency | `25` |
+| `-vuln-output` | Write Nuclei JSONL findings to file | |
+| `-vuln-update` | Update Nuclei templates before scanning | `false` |
+| `-vuln-headless` | Enable Nuclei headless templates | `false` |
+| `-vuln-code` | Enable Nuclei code protocol templates | `false` |
+| `-vuln-dast` | Enable Nuclei DAST/fuzz templates | `false` |
+| `-vuln-include-aggressive` | Do not exclude dos/fuzz/intrusive tags | `false` |
+| `-nuclei-bin` | Path/name of nuclei binary | `nuclei` |
+| `-curl` | Run advanced curl HTTP fingerprinting | `false` |
+| `-curl-export` | Write replayable curl commands to a shell script | |
+| `-curl-bin` | Path/name of curl binary | `curl` |
+| `-curl-user-agent` | User-Agent for curl requests | `did_finder/3.0` |
+| `-curl-headers` | Comma-separated extra curl headers | |
+| `-curl-timeout` | Curl max time and connect timeout | `15` |
+| `-curl-follow` | Follow redirects with curl | `true` |
+| `-tools` | Show embedded awesome-bugbounty-tools catalog | `false` |
+| `-tools-category` | Filter tool catalog by category | |
+| `-tools-search` | Search tool catalog | |
+| `-tools-check` | Check whether listed tools are installed in PATH | `false` |
+| `-tools-json` | Print tool catalog as JSON | `false` |
+| `-tools-recommend` | Recommend companion tools for enabled modules | `false` |
 | `-nc` | Disable colors | `false` |
 
 ---
@@ -190,7 +261,43 @@ resolvers:
 webhook:
   discord: "https://discord.com/api/webhooks/..."
   slack: "https://hooks.slack.com/services/..."
+
+# Local Ollama analysis
+ollama:
+  enabled: false
+  host: "http://127.0.0.1:11434"
+  model: "llama3.2:1b"
+  output: ""
+
+# Open-source Nuclei vulnerability scanning
+nuclei:
+  enabled: false
+  binary: "nuclei"
+  templates: []
+  severity: "low,medium,high,critical"
+  tags: ""
+  exclude_tags: "dos,fuzz,intrusive"
+  rate_limit: 50
+  concurrency: 25
+  output: ""
+  update_templates: false
+  headless: false
+  code: false
+  dast: false
+  include_aggressive: false
+
+# Advanced curl fingerprints and replay script export
+curl:
+  enabled: false
+  binary: "curl"
+  output: ""
+  user_agent: "did_finder/3.0"
+  headers: []
+  timeout: 15
+  follow_redirects: true
 ```
+
+The embedded tool catalog is imported from [`vavkamil/awesome-bugbounty-tools`](https://github.com/vavkamil/awesome-bugbounty-tools), which is released under CC0-1.0.
 
 ---
 
@@ -214,6 +321,12 @@ Tests for:
 
 ### Open Redirect
 Tests 30+ common redirect parameters (`url`, `redirect`, `next`, `dest`, `return_to`, etc.)
+
+### Open-Source Vulnerability Scanning
+Runs Nuclei against discovered targets and folds JSONL findings into terminal output, `-json`, `-vuln-output`, HTML reports, and optional Ollama triage. By default it scans `low,medium,high,critical` findings and excludes `dos,fuzz,intrusive` tags; `-vuln-all`, `-vuln-headless`, `-vuln-code`, `-vuln-dast`, and `-vuln-include-aggressive` expose broader Nuclei modes when you want them.
+
+### Advanced Curl Mode
+Runs `curl` against live targets with compression, path-preserving requests, TLS ignore for recon, timing metrics, redirect counts, remote IPs, content types, and status codes. `-curl-export` writes a replayable shell script for live targets, Nuclei findings, and open redirect checks so manual validation can start from exact commands.
 
 ---
 

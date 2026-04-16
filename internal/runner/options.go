@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/yel-joul/did_finder/internal/active"
+	"github.com/yel-joul/did_finder/internal/ai"
 )
 
 type Options struct {
@@ -40,19 +43,59 @@ type Options struct {
 	All          bool
 
 	// v3.0 new features
-	PortScan     bool
-	Screenshot   bool
-	CORSCheck    bool
+	PortScan      bool
+	Screenshot    bool
+	CORSCheck     bool
 	RedirectCheck bool
-	Resume       bool
-	Resolver     string
-	ResolverList string
-	Exclude      string
-	OutputDir    string
+	Resume        bool
+	Resolver      string
+	ResolverList  string
+	Exclude       string
+	OutputDir     string
+
+	// Local Ollama analysis
+	Ollama       bool
+	OllamaHost   string
+	OllamaModel  string
+	OllamaOutput string
+
+	// Open-source vulnerability scanning through Nuclei
+	VulnScan              bool
+	VulnAll               bool
+	VulnTemplates         string
+	VulnSeverity          string
+	VulnTags              string
+	VulnExcludeTags       string
+	VulnRateLimit         int
+	VulnConcurrency       int
+	VulnOutput            string
+	VulnUpdateTemplates   bool
+	VulnHeadless          bool
+	VulnCode              bool
+	VulnDAST              bool
+	VulnIncludeAggressive bool
+	NucleiBinary          string
+
+	// Advanced curl fingerprints and replay exports
+	Curl          bool
+	CurlExport    string
+	CurlBinary    string
+	CurlUserAgent string
+	CurlHeaders   string
+	CurlTimeout   int
+	CurlFollow    bool
+
+	// Embedded bug bounty toolkit catalog
+	Tools          bool
+	ToolsCategory  string
+	ToolsSearch    string
+	ToolsCheck     bool
+	ToolsJSON      bool
+	ToolsRecommend bool
 
 	// Populated at runtime
-	Domains      []string
-	Resolvers    []string
+	Domains         []string
+	Resolvers       []string
 	ExcludePatterns []string
 }
 
@@ -99,6 +142,38 @@ func ParseOptions() *Options {
 	flag.StringVar(&options.ResolverList, "rL", "", "File containing list of DNS resolvers")
 	flag.StringVar(&options.Exclude, "exclude", "", "Comma-separated patterns to exclude (e.g. *.staging.*,*.dev.*)")
 	flag.StringVar(&options.OutputDir, "oD", "output", "Output directory for screenshots and reports")
+	flag.BoolVar(&options.Ollama, "ollama", false, "Analyze scan findings with local Ollama")
+	flag.StringVar(&options.OllamaHost, "ollama-host", "", fmt.Sprintf("Ollama host URL (default: %s)", ai.DefaultOllamaHost))
+	flag.StringVar(&options.OllamaModel, "ollama-model", "", fmt.Sprintf("Ollama model name (default: %s)", ai.DefaultOllamaModel))
+	flag.StringVar(&options.OllamaOutput, "ollama-out", "", "Write Ollama analysis Markdown to file")
+	flag.BoolVar(&options.VulnScan, "vuln", false, "Run open-source Nuclei vulnerability scanning on discovered targets")
+	flag.BoolVar(&options.VulnAll, "vuln-all", false, "Run all default Nuclei template severities instead of low,medium,high,critical only")
+	flag.StringVar(&options.VulnTemplates, "vuln-templates", "", "Comma-separated Nuclei template files/directories to run")
+	flag.StringVar(&options.VulnSeverity, "vuln-severity", "low,medium,high,critical", "Nuclei severity filter")
+	flag.StringVar(&options.VulnTags, "vuln-tags", "", "Nuclei tags to include")
+	flag.StringVar(&options.VulnExcludeTags, "vuln-exclude-tags", "dos,fuzz,intrusive", "Nuclei tags to exclude")
+	flag.IntVar(&options.VulnRateLimit, "vuln-rate", 50, "Nuclei maximum requests per second")
+	flag.IntVar(&options.VulnConcurrency, "vuln-concurrency", 25, "Nuclei template concurrency")
+	flag.StringVar(&options.VulnOutput, "vuln-output", "", "Write Nuclei JSONL findings to file")
+	flag.BoolVar(&options.VulnUpdateTemplates, "vuln-update", false, "Update Nuclei templates before scanning")
+	flag.BoolVar(&options.VulnHeadless, "vuln-headless", false, "Enable Nuclei headless templates")
+	flag.BoolVar(&options.VulnCode, "vuln-code", false, "Enable Nuclei code protocol templates")
+	flag.BoolVar(&options.VulnDAST, "vuln-dast", false, "Enable Nuclei DAST/fuzz templates")
+	flag.BoolVar(&options.VulnIncludeAggressive, "vuln-include-aggressive", false, "Do not exclude dos/fuzz/intrusive Nuclei tags")
+	flag.StringVar(&options.NucleiBinary, "nuclei-bin", active.DefaultNucleiBinary, "Path/name of nuclei binary")
+	flag.BoolVar(&options.Curl, "curl", false, "Run advanced curl HTTP fingerprinting on live targets")
+	flag.StringVar(&options.CurlExport, "curl-export", "", "Write replayable curl commands to a shell script")
+	flag.StringVar(&options.CurlBinary, "curl-bin", active.DefaultCurlBinary, "Path/name of curl binary")
+	flag.StringVar(&options.CurlUserAgent, "curl-user-agent", "did_finder/3.0", "User-Agent for curl requests")
+	flag.StringVar(&options.CurlHeaders, "curl-headers", "", "Comma-separated extra curl headers")
+	flag.IntVar(&options.CurlTimeout, "curl-timeout", 15, "Curl max time and connect timeout in seconds")
+	flag.BoolVar(&options.CurlFollow, "curl-follow", true, "Follow redirects with curl")
+	flag.BoolVar(&options.Tools, "tools", false, "Show embedded awesome-bugbounty-tools catalog")
+	flag.StringVar(&options.ToolsCategory, "tools-category", "", "Filter tool catalog by category")
+	flag.StringVar(&options.ToolsSearch, "tools-search", "", "Search tool catalog")
+	flag.BoolVar(&options.ToolsCheck, "tools-check", false, "Check whether catalog tools are installed in PATH")
+	flag.BoolVar(&options.ToolsJSON, "tools-json", false, "Print tool catalog as JSON")
+	flag.BoolVar(&options.ToolsRecommend, "tools-recommend", false, "Recommend companion tools for enabled did_finder modules")
 
 	flag.Parse()
 
@@ -111,10 +186,24 @@ func ParseOptions() *Options {
 		options.CertGrab = true
 		options.Bruteforce = true
 		options.Permute = true
+		options.Scrape = true
+		options.Recursive = true
+		options.ZoneTransfer = true
+		options.CIDR = true
 		options.PortScan = true
+		options.Screenshot = true
 		options.CORSCheck = true
 		options.RedirectCheck = true
 		options.DNSEnum = true
+		options.VulnScan = true
+		options.Curl = true
+	}
+	if options.VulnAll {
+		options.VulnScan = true
+		options.VulnSeverity = ""
+	}
+	if options.VulnIncludeAggressive {
+		options.VulnExcludeTags = ""
 	}
 
 	// Collect domains
@@ -162,6 +251,79 @@ func ParseOptions() *Options {
 	}
 
 	return options
+}
+
+func (o *Options) ToolsRequested() bool {
+	return o.Tools || o.ToolsCategory != "" || o.ToolsSearch != "" ||
+		o.ToolsCheck || o.ToolsJSON || o.ToolsRecommend
+}
+
+func (o *Options) EnabledToolModules() []string {
+	var modules []string
+	if o.All {
+		modules = append(modules, "all")
+	}
+	if o.Resolve {
+		modules = append(modules, "resolve")
+	}
+	if o.Probe {
+		modules = append(modules, "probe")
+	}
+	if o.Bruteforce {
+		modules = append(modules, "brute")
+	}
+	if o.Permute {
+		modules = append(modules, "permute")
+	}
+	if o.Scrape {
+		modules = append(modules, "scrape")
+	}
+	if o.Recursive {
+		modules = append(modules, "passive")
+	}
+	if o.CertGrab {
+		modules = append(modules, "certs")
+	}
+	if o.DNSEnum {
+		modules = append(modules, "dns-enum")
+	}
+	if o.ZoneTransfer {
+		modules = append(modules, "zt")
+	}
+	if o.CIDR {
+		modules = append(modules, "cidr")
+	}
+	if o.Takeover {
+		modules = append(modules, "takeover")
+	}
+	if o.WAFDetect {
+		modules = append(modules, "waf")
+	}
+	if o.PortScan {
+		modules = append(modules, "ports")
+	}
+	if o.CORSCheck {
+		modules = append(modules, "cors")
+	}
+	if o.RedirectCheck {
+		modules = append(modules, "redirect")
+	}
+	if o.Screenshot {
+		modules = append(modules, "screenshot")
+	}
+	if o.Ollama {
+		modules = append(modules, "ollama")
+	}
+	if o.VulnScan {
+		modules = append(modules, "vuln")
+	}
+	if o.Curl {
+		modules = append(modules, "curl")
+	}
+	if len(modules) == 0 {
+		modules = append(modules, "passive")
+	}
+	return modules
 }
 
 func readLines(path string) ([]string, error) {
