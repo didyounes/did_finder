@@ -23,7 +23,7 @@ func (s *Source) Run(ctx context.Context, domain string, results chan sources.Re
 		return
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := sources.Do(req)
 	if err != nil {
 		results <- sources.Result{Source: s.Name(), Error: err}
 		return

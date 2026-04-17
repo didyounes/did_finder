@@ -9,6 +9,10 @@ build:
 
 install:
 	$(GO) install ./cmd/did_finder
+	@bin="$$( $(GO) env GOBIN )"; \
+	if [ -z "$$bin" ]; then bin="$$( $(GO) env GOPATH )/bin"; fi; \
+	printf 'Installed did_finder to %s/did_finder\n' "$$bin"; \
+	case ":$$PATH:" in *":$$bin:"*) ;; *) printf 'Add it to PATH with: export PATH="$$PATH:%s"\n' "$$bin";; esac
 
 test:
 	$(GO) test ./...

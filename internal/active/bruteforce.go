@@ -2,10 +2,8 @@ package active
 
 import (
 	"context"
-	"net"
 	"strings"
 	"sync"
-	"time"
 )
 
 // Built-in wordlist for DNS bruteforce
@@ -42,6 +40,10 @@ var defaultWordlist = []string{
 
 // Bruteforce performs DNS bruteforce using the built-in wordlist
 func Bruteforce(ctx context.Context, domain string, threads int, customWordlist []string) <-chan string {
+	return BruteforceWithResolvers(ctx, domain, threads, customWordlist, nil)
+}
+
+func BruteforceWithResolvers(ctx context.Context, domain string, threads int, customWordlist []string, resolvers []string) <-chan string {
 	results := make(chan string)
 
 	wordlist := defaultWordlist
@@ -51,14 +53,10 @@ func Bruteforce(ctx context.Context, domain string, threads int, customWordlist 
 
 	jobs := make(chan string, len(wordlist))
 
-	// Custom resolver with short timeout
-	resolver := &net.Resolver{
-		PreferGo: true,
-		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-			d := net.Dialer{Timeout: 2 * time.Second}
-			return d.DialContext(ctx, "udp", "8.8.8.8:53")
-		},
+	if threads <= 0 {
+		threads = 1
 	}
+	dnsClient := NewDNSClient(resolvers)
 
 	var wg sync.WaitGroup
 
@@ -68,10 +66,7 @@ func Bruteforce(ctx context.Context, domain string, threads int, customWordlist 
 			defer wg.Done()
 			for word := range jobs {
 				sub := word + "." + domain
-				// Per-query timeout of 3 seconds
-				queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-				ips, err := resolver.LookupHost(queryCtx, sub)
-				cancel()
+				ips, err := dnsClient.LookupHost(ctx, sub)
 				if err == nil && len(ips) > 0 {
 					results <- sub
 				}
@@ -81,10 +76,15 @@ func Bruteforce(ctx context.Context, domain string, threads int, customWordlist 
 
 	go func() {
 		for _, word := range wordlist {
+			word = strings.TrimSpace(word)
+			if word == "" {
+				continue
+			}
 			select {
 			case <-ctx.Done():
-				break
-			case jobs <- strings.TrimSpace(word):
+				close(jobs)
+				return
+			case jobs <- word:
 			}
 		}
 		close(jobs)

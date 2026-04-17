@@ -46,7 +46,7 @@ func (s *Source) Run(ctx context.Context, domain string, results chan sources.Re
 		req.Header.Set("Authorization", fmt.Sprintf("token %s", s.APIKey))
 		req.Header.Set("Accept", "application/vnd.github.v3.text-match+json")
 
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := sources.Do(req)
 		if err != nil {
 			results <- sources.Result{Source: s.Name(), Error: err}
 			return

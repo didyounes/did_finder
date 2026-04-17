@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,30 +17,17 @@ import (
 	"github.com/yel-joul/did_finder/internal/ai"
 	"github.com/yel-joul/did_finder/internal/output"
 	"github.com/yel-joul/did_finder/internal/sources"
-	"github.com/yel-joul/did_finder/internal/sources/alienvault"
-	"github.com/yel-joul/did_finder/internal/sources/anubis"
-	"github.com/yel-joul/did_finder/internal/sources/bufferover"
-	"github.com/yel-joul/did_finder/internal/sources/certspotter"
-	"github.com/yel-joul/did_finder/internal/sources/commoncrawl"
-	"github.com/yel-joul/did_finder/internal/sources/crtsh"
-	"github.com/yel-joul/did_finder/internal/sources/github"
-	"github.com/yel-joul/did_finder/internal/sources/hackertarget"
-	"github.com/yel-joul/did_finder/internal/sources/rapiddns"
-	"github.com/yel-joul/did_finder/internal/sources/securitytrails"
-	"github.com/yel-joul/did_finder/internal/sources/shodan"
-	"github.com/yel-joul/did_finder/internal/sources/threatcrowd"
-	"github.com/yel-joul/did_finder/internal/sources/urlscan"
-	"github.com/yel-joul/did_finder/internal/sources/virustotal"
-	"github.com/yel-joul/did_finder/internal/sources/wayback"
 	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 type Runner struct {
-	options  *Options
-	stats    *output.Stats
-	progress *output.Progress
-	outFile  *os.File
-	config   *utils.Config
+	options          *Options
+	stats            *output.Stats
+	progress         *output.Progress
+	outFile          *os.File
+	config           *utils.Config
+	passiveCache     map[string]map[string]struct{}
+	subdomainSources map[string]map[string]struct{}
 
 	// Collected data for HTML report
 	reportSubdomains []output.SubdomainEntry
@@ -57,6 +43,12 @@ type Runner struct {
 }
 
 func NewRunner(options *Options) (*Runner, error) {
+	if options.MinSources < 1 {
+		options.MinSources = 1
+	}
+	if err := validateSourceSelection(options); err != nil {
+		return nil, err
+	}
 	if len(options.Domains) == 0 {
 		return nil, errors.New("no domains specified. Use -d, -dL, or pipe via stdin")
 	}
@@ -68,6 +60,7 @@ func NewRunner(options *Options) (*Runner, error) {
 	if config == nil {
 		config = &utils.Config{}
 	}
+	sources.SetRateLimit(options.RateLimit)
 
 	// Merge resolvers from config if none provided via CLI
 	if len(options.Resolvers) == 0 && len(config.Resolvers) > 0 {
@@ -167,10 +160,12 @@ func NewRunner(options *Options) (*Runner, error) {
 	}
 
 	r := &Runner{
-		options:  options,
-		stats:    output.NewStats(),
-		progress: output.NewProgress(!options.Silent && !options.JSON),
-		config:   config,
+		options:          options,
+		stats:            output.NewStats(),
+		progress:         output.NewProgress(!options.Silent && !options.JSON),
+		config:           config,
+		passiveCache:     make(map[string]map[string]struct{}),
+		subdomainSources: make(map[string]map[string]struct{}),
 	}
 
 	if options.OutputFile != "" {
@@ -192,36 +187,37 @@ func (r *Runner) Run() error {
 		defer r.outFile.Close()
 	}
 
-	sourceCount := 11
-	if r.config.VirusTotal != "" {
-		sourceCount++
-	}
-	if r.config.SecurityTrails != "" {
-		sourceCount++
-	}
-	if r.config.Shodan != "" {
-		sourceCount++
-	}
-	if r.config.GitHub != "" {
-		sourceCount++
-	}
+	sourceCount := len(r.passiveSources())
 
 	if !r.options.Silent {
 		output.PrintBanner()
 		output.PrintInfo("Loaded %d passive sources", sourceCount)
-		output.PrintInfo("Targets: %d domain(s)", len(r.options.Domains))
+		output.PrintInfo("Targets: %d root domain(s)", len(r.options.Domains))
+		if seedCount := r.seedCount(); seedCount > len(r.options.Domains) {
+			output.PrintInfo("Seed hosts from input: %d", seedCount)
+		}
+		output.PrintInfo("Passive source rate: %d request(s)/second", maxInt(r.options.RateLimit, 1))
 		if len(r.options.Resolvers) > 0 {
 			output.PrintInfo("Custom resolvers: %d", len(r.options.Resolvers))
 		}
 		if len(r.options.ExcludePatterns) > 0 {
 			output.PrintInfo("Exclude patterns: %s", strings.Join(r.options.ExcludePatterns, ", "))
 		}
+		if r.options.Sources != "" {
+			output.PrintInfo("Included passive sources: %s", r.options.Sources)
+		}
+		if r.options.ExcludeSources != "" {
+			output.PrintInfo("Excluded passive sources: %s", r.options.ExcludeSources)
+		}
+		if r.options.MinSources > 1 {
+			output.PrintInfo("Minimum source confidence: %d", r.options.MinSources)
+		}
 		r.printEnabledFeatures()
 		fmt.Println()
 	}
 
 	if r.options.CSV {
-		r.writeOutput("subdomain,source,ip,status,title,techs")
+		r.writeOutput("subdomain,sources,ip,status,title,risk,tags")
 	}
 
 	for _, domain := range r.options.Domains {
@@ -298,6 +294,10 @@ func (r *Runner) printEnabledFeatures() {
 }
 
 func (r *Runner) runDomain(domain string) error {
+	domain = utils.RegistrableDomain(domain)
+	if domain == "" {
+		return errors.New("empty domain after normalization")
+	}
 	if !r.options.Silent {
 		output.PrintInfo("Enumerating subdomains for: %s", domain)
 	}
@@ -312,6 +312,9 @@ func (r *Runner) runDomain(domain string) error {
 		state, err := LoadState()
 		if err == nil && state.Domain == domain {
 			allSubs = MergeSubdomains(state)
+			for sub := range allSubs {
+				r.addProvenance(sub, "resume")
+			}
 			resumePhase = state.Phase
 			if !r.options.Silent {
 				output.PrintSuccess("Resumed scan with %d previously found subdomains (phase: %s)", len(allSubs), resumePhase)
@@ -321,9 +324,14 @@ func (r *Runner) runDomain(domain string) error {
 
 	// ── WILDCARD ──
 	wildcard := active.NewWildcardDetector()
-	if wildcard.Detect(ctx, domain) && !r.options.Silent {
+	if wildcard.DetectWithResolvers(ctx, domain, r.options.Resolvers) && !r.options.Silent {
 		output.PrintWarning("Wildcard DNS detected for %s — results will be filtered", domain)
 	}
+
+	if allSubs == nil {
+		allSubs = make(map[string]struct{})
+	}
+	r.addSeedHosts(domain, allSubs)
 
 	// ── ZONE TRANSFER ──
 	if r.options.ZoneTransfer && resumePhase == "" {
@@ -337,6 +345,11 @@ func (r *Runner) runDomain(domain string) error {
 			}
 		} else if len(ztSubs) > 0 && !r.options.Silent {
 			output.PrintSuccess("Zone transfer returned %d records!", len(ztSubs))
+		}
+		for _, sub := range ztSubs {
+			if utils.BelongsToDomain(sub, domain) {
+				r.addSubdomain(allSubs, sub, "zone-transfer")
+			}
 		}
 	}
 
@@ -364,13 +377,11 @@ func (r *Runner) runDomain(domain string) error {
 			customWords = loadWordlist(r.options.WordlistPath)
 		}
 		bruteCtx, bruteCancel := context.WithTimeout(context.Background(), time.Duration(r.options.Timeout)*2*time.Second)
-		bruteChan := active.Bruteforce(bruteCtx, domain, r.options.Threads, customWords)
+		bruteChan := active.BruteforceWithResolvers(bruteCtx, domain, r.options.Threads, customWords, r.options.Resolvers)
 		var bruteCount int
 		for sub := range bruteChan {
-			if _, exists := allSubs[sub]; !exists {
-				allSubs[sub] = struct{}{}
+			if r.addSubdomain(allSubs, sub, "bruteforce") {
 				bruteCount++
-				r.stats.AddFound("bruteforce")
 			}
 		}
 		bruteCancel()
@@ -386,7 +397,7 @@ func (r *Runner) runDomain(domain string) error {
 			output.PrintInfo("Running CIDR reverse DNS scan...")
 		}
 		cidrCtx, cidrCancel := r.phaseContext(2)
-		cidrSubs, err := active.ReverseDNSFromCIDR(cidrCtx, domain, r.options.Threads)
+		cidrSubs, err := active.ReverseDNSFromCIDRWithResolvers(cidrCtx, domain, r.options.Threads, r.options.Resolvers)
 		cidrCancel()
 		if err != nil {
 			if !r.options.Silent {
@@ -395,10 +406,8 @@ func (r *Runner) runDomain(domain string) error {
 		} else {
 			var cidrCount int
 			for _, sub := range cidrSubs {
-				if _, exists := allSubs[sub]; !exists {
-					allSubs[sub] = struct{}{}
+				if r.addSubdomain(allSubs, sub, "cidr-rdns") {
 					cidrCount++
-					r.stats.AddFound("cidr-rdns")
 				}
 			}
 			if !r.options.Silent {
@@ -414,16 +423,8 @@ func (r *Runner) runDomain(domain string) error {
 		recursiveCancel()
 	}
 
-	// ── APPLY EXCLUDE PATTERNS ──
-	finalSubdomains := make([]string, 0, len(allSubs))
-	for sub := range allSubs {
-		if !r.isExcluded(sub) {
-			finalSubdomains = append(finalSubdomains, sub)
-		}
-	}
-	if excluded := len(allSubs) - len(finalSubdomains); excluded > 0 && !r.options.Silent {
-		output.PrintInfo("Excluded %d subdomains by pattern", excluded)
-	}
+	// ── APPLY OUTPUT / CONFIDENCE FILTERS ──
+	finalSubdomains := r.filteredSubdomains(allSubs)
 
 	// ── SCRAPE ──
 	if r.options.Scrape {
@@ -434,9 +435,10 @@ func (r *Runner) runDomain(domain string) error {
 		scrapeChan := active.Scrape(scrapeCtx, domain, finalSubdomains, r.options.Threads)
 		var count int
 		for sub := range scrapeChan {
-			if _, exists := allSubs[sub]; !exists {
-				allSubs[sub] = struct{}{}
-				finalSubdomains = append(finalSubdomains, sub)
+			if r.addSubdomain(allSubs, sub, "scrape") {
+				if r.shouldKeepSubdomain(sub) {
+					finalSubdomains = append(finalSubdomains, sub)
+				}
 				count++
 			}
 		}
@@ -473,11 +475,11 @@ func (r *Runner) runDomain(domain string) error {
 		sanSubs := active.ExtractSANSubdomains(certResults, domain)
 		var sanNew int
 		for _, sub := range sanSubs {
-			if _, exists := allSubs[sub]; !exists {
-				allSubs[sub] = struct{}{}
-				finalSubdomains = append(finalSubdomains, sub)
+			if r.addSubdomain(allSubs, sub, "cert-san") {
+				if r.shouldKeepSubdomain(sub) {
+					finalSubdomains = append(finalSubdomains, sub)
+				}
 				sanNew++
-				r.stats.AddFound("cert-san")
 			}
 		}
 		if !r.options.Silent {
@@ -493,11 +495,11 @@ func (r *Runner) runDomain(domain string) error {
 		perms := active.GeneratePermutations(domain, finalSubdomains)
 		r.stats.SetPermutations(len(perms))
 		for _, p := range perms {
-			if _, exists := allSubs[p]; !exists {
-				allSubs[p] = struct{}{}
+			if r.addSubdomain(allSubs, p, "permutation") && r.shouldKeepSubdomain(p) {
 				finalSubdomains = append(finalSubdomains, p)
 			}
 		}
+		sort.Strings(finalSubdomains)
 		if !r.options.Silent {
 			output.PrintInfo("Generated %d permutations (total: %d)", len(perms), len(finalSubdomains))
 		}
@@ -511,18 +513,20 @@ func (r *Runner) runDomain(domain string) error {
 		}
 		r.progress.StartPhase("DNS Resolve", len(finalSubdomains))
 		resolveCtx, resolveCancel := context.WithTimeout(context.Background(), time.Duration(r.options.Timeout)*2*time.Second)
-		liveChan := active.Resolve(resolveCtx, finalSubdomains, r.options.Threads)
+		dnsClient := active.NewDNSClient(r.options.Resolvers)
+		liveChan := active.ResolveWithResolvers(resolveCtx, finalSubdomains, r.options.Threads, r.options.Resolvers)
 		for sub := range liveChan {
 			r.progress.Increment()
 			if wildcard.Detected() {
-				ips, _ := net.LookupHost(sub)
+				ips, _ := dnsClient.LookupHost(resolveCtx, sub)
 				if wildcard.IsWildcard(ips) {
 					continue
 				}
 			}
 			liveList = append(liveList, sub)
-			r.outputResult(sub, "resolved", "", 0, "")
-			r.reportSubdomains = append(r.reportSubdomains, output.SubdomainEntry{Name: sub, Source: "resolved"})
+			source := r.sourceString(sub)
+			r.outputResult(sub, source, "", 0, "")
+			r.reportSubdomains = append(r.reportSubdomains, r.subdomainEntry(sub, source))
 		}
 		resolveCancel()
 		r.progress.Done()
@@ -533,8 +537,9 @@ func (r *Runner) runDomain(domain string) error {
 	} else {
 		liveList = finalSubdomains
 		for _, sub := range finalSubdomains {
-			r.outputResult(sub, "passive", "", 0, "")
-			r.reportSubdomains = append(r.reportSubdomains, output.SubdomainEntry{Name: sub, Source: "passive"})
+			source := r.sourceString(sub)
+			r.outputResult(sub, source, "", 0, "")
+			r.reportSubdomains = append(r.reportSubdomains, r.subdomainEntry(sub, source))
 		}
 	}
 
@@ -718,30 +723,256 @@ func matchGlob(pattern, s string) bool {
 	return strings.HasSuffix(s, parts[len(parts)-1])
 }
 
+func (r *Runner) addSubdomain(allSubs map[string]struct{}, subdomain, source string) bool {
+	subdomain = utils.NormalizeHostname(subdomain)
+	if subdomain == "" {
+		return false
+	}
+	r.addProvenance(subdomain, source)
+	if _, exists := allSubs[subdomain]; exists {
+		return false
+	}
+	allSubs[subdomain] = struct{}{}
+	r.stats.AddFound(source)
+	return true
+}
+
+func (r *Runner) addProvenance(subdomain, source string) {
+	subdomain = utils.NormalizeHostname(subdomain)
+	source = strings.TrimSpace(source)
+	if subdomain == "" || source == "" {
+		return
+	}
+	if r.subdomainSources == nil {
+		r.subdomainSources = make(map[string]map[string]struct{})
+	}
+	if r.subdomainSources[subdomain] == nil {
+		r.subdomainSources[subdomain] = make(map[string]struct{})
+	}
+	r.subdomainSources[subdomain][source] = struct{}{}
+}
+
+func (r *Runner) sourceList(subdomain string) []string {
+	sourceSet := r.subdomainSources[utils.NormalizeHostname(subdomain)]
+	if len(sourceSet) == 0 {
+		return nil
+	}
+	sources := make([]string, 0, len(sourceSet))
+	for source := range sourceSet {
+		sources = append(sources, source)
+	}
+	sort.Strings(sources)
+	return sources
+}
+
+func (r *Runner) sourceString(subdomain string) string {
+	sources := r.sourceList(subdomain)
+	if len(sources) == 0 {
+		return "unknown"
+	}
+	return strings.Join(sources, ",")
+}
+
+func (r *Runner) sourceCount(subdomain string) int {
+	return len(r.subdomainSources[utils.NormalizeHostname(subdomain)])
+}
+
+func (r *Runner) seedCount() int {
+	var count int
+	for _, seeds := range r.options.TargetSeeds {
+		count += len(seeds)
+	}
+	return count
+}
+
+func (r *Runner) addSeedHosts(domain string, allSubs map[string]struct{}) {
+	for _, seed := range r.options.TargetSeeds[domain] {
+		seed = utils.NormalizeHostname(seed)
+		if seed == "" || !utils.BelongsToDomain(seed, domain) {
+			continue
+		}
+		if _, exists := allSubs[seed]; exists {
+			continue
+		}
+		allSubs[seed] = struct{}{}
+		r.addProvenance(seed, "input")
+		r.stats.AddFound("input")
+	}
+}
+
+func (r *Runner) filteredSubdomains(allSubs map[string]struct{}) []string {
+	finalSubdomains := make([]string, 0, len(allSubs))
+	var excluded, lowConfidence, boring int
+	for sub := range allSubs {
+		switch {
+		case r.isExcluded(sub):
+			excluded++
+			continue
+		case r.options.MinSources > 1 && r.sourceCount(sub) < r.options.MinSources:
+			lowConfidence++
+			continue
+		case r.options.InterestingOnly && !isInterestingProfile(sub, r.sourceCount(sub)):
+			boring++
+			continue
+		}
+		finalSubdomains = append(finalSubdomains, sub)
+	}
+	sort.Strings(finalSubdomains)
+	if excluded > 0 && !r.options.Silent {
+		output.PrintInfo("Excluded %d subdomains by pattern", excluded)
+	}
+	if lowConfidence > 0 && !r.options.Silent {
+		output.PrintInfo("Filtered %d subdomains below -min-sources %d", lowConfidence, r.options.MinSources)
+	}
+	if boring > 0 && !r.options.Silent {
+		output.PrintInfo("Filtered %d low-signal subdomains with -interesting", boring)
+	}
+	return finalSubdomains
+}
+
+func (r *Runner) shouldKeepSubdomain(sub string) bool {
+	if r.isExcluded(sub) {
+		return false
+	}
+	if r.options.MinSources > 1 && r.sourceCount(sub) < r.options.MinSources {
+		return false
+	}
+	if r.options.InterestingOnly {
+		return isInterestingProfile(sub, r.sourceCount(sub))
+	}
+	return true
+}
+
+func isInterestingProfile(sub string, sourceCount int) bool {
+	score, _ := profileSubdomain(sub, sourceCount)
+	return score >= 20
+}
+
+func cloneSubdomainSet(in map[string]struct{}) map[string]struct{} {
+	out := make(map[string]struct{}, len(in))
+	for sub := range in {
+		out[sub] = struct{}{}
+	}
+	return out
+}
+
+func profileSubdomain(subdomain string, sourceCount int) (int, []string) {
+	host := utils.NormalizeHostname(subdomain)
+	if host == "" {
+		return 0, nil
+	}
+
+	score := 0
+	tagSet := make(map[string]struct{})
+	if sourceCount >= 2 {
+		score += 8
+		tagSet["multi-source"] = struct{}{}
+	}
+	if sourceCount >= 3 {
+		score += 10
+		tagSet["high-confidence"] = struct{}{}
+	}
+
+	weights := map[string]struct {
+		tag    string
+		weight int
+	}{
+		"admin":     {"admin", 20},
+		"adm":       {"admin", 16},
+		"api":       {"api", 10},
+		"auth":      {"auth", 14},
+		"backup":    {"backup", 18},
+		"beta":      {"pre-release", 8},
+		"cpanel":    {"hosting-panel", 18},
+		"dashboard": {"dashboard", 16},
+		"db":        {"database", 20},
+		"dev":       {"non-prod", 14},
+		"docker":    {"container", 14},
+		"exchange":  {"mail", 12},
+		"git":       {"source-control", 16},
+		"gitlab":    {"source-control", 18},
+		"grafana":   {"monitoring", 18},
+		"internal":  {"internal", 18},
+		"intranet":  {"internal", 16},
+		"jenkins":   {"ci-cd", 18},
+		"jira":      {"issue-tracker", 14},
+		"kibana":    {"monitoring", 18},
+		"k8s":       {"container", 14},
+		"login":     {"login", 10},
+		"mail":      {"mail", 8},
+		"mysql":     {"database", 20},
+		"old":       {"legacy", 12},
+		"owa":       {"mail", 12},
+		"payment":   {"payment", 18},
+		"portal":    {"portal", 10},
+		"postgres":  {"database", 20},
+		"preprod":   {"non-prod", 16},
+		"prod":      {"production", 8},
+		"qa":        {"non-prod", 12},
+		"redis":     {"database", 20},
+		"registry":  {"container", 16},
+		"remote":    {"remote-access", 16},
+		"secure":    {"secure", 8},
+		"sso":       {"auth", 16},
+		"stage":     {"non-prod", 14},
+		"staging":   {"non-prod", 14},
+		"test":      {"non-prod", 10},
+		"uat":       {"non-prod", 12},
+		"vault":     {"secrets", 22},
+		"vpn":       {"remote-access", 18},
+		"webmail":   {"mail", 10},
+		"whm":       {"hosting-panel", 18},
+	}
+
+	for _, label := range strings.Split(host, ".") {
+		for _, token := range strings.FieldsFunc(label, func(r rune) bool {
+			return r == '-' || r == '_' || r == '.'
+		}) {
+			if hit, ok := weights[token]; ok {
+				score += hit.weight
+				tagSet[hit.tag] = struct{}{}
+			}
+		}
+	}
+
+	tags := make([]string, 0, len(tagSet))
+	for tag := range tagSet {
+		tags = append(tags, tag)
+	}
+	sort.Strings(tags)
+	if score > 100 {
+		score = 100
+	}
+	return score, tags
+}
+
+func (r *Runner) subdomainEntry(subdomain, source string) output.SubdomainEntry {
+	score, tags := profileSubdomain(subdomain, r.sourceCount(subdomain))
+	return output.SubdomainEntry{
+		Name:        subdomain,
+		Source:      source,
+		SourceCount: r.sourceCount(subdomain),
+		Risk:        score,
+		Tags:        strings.Join(tags, ","),
+	}
+}
+
 // ──────────── PASSIVE ────────────
 
 func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[string]struct{} {
+	queryDomain := utils.RegistrableDomain(domain)
+	if queryDomain == "" {
+		queryDomain = utils.NormalizeHostname(domain)
+	}
+	if cached, exists := r.passiveCache[queryDomain]; exists {
+		return cloneSubdomainSet(cached)
+	}
+
 	results := make(chan sources.Result)
 	allSubs := make(map[string]struct{})
 	var mu sync.Mutex
 
-	passiveSources := []sources.Source{
-		&crtsh.Source{},
-		&hackertarget.Source{},
-		&alienvault.Source{},
-		&wayback.Source{},
-		&certspotter.Source{},
-		&anubis.Source{},
-		&threatcrowd.Source{},
-		&rapiddns.Source{},
-		&urlscan.Source{},
-		&bufferover.Source{},
-		&commoncrawl.Source{},
-		&virustotal.Source{APIKey: r.config.VirusTotal},
-		&securitytrails.Source{APIKey: r.config.SecurityTrails},
-		&shodan.Source{APIKey: r.config.Shodan},
-		&github.Source{APIKey: r.config.GitHub},
-	}
+	passiveSources := r.passiveSources()
 
 	var wg sync.WaitGroup
 	done := make(chan struct{})
@@ -758,18 +989,14 @@ func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[s
 				continue
 			}
 			sub := utils.NormalizeHostname(result.Value)
-			if !utils.BelongsToDomain(sub, domain) {
+			if !utils.BelongsToDomain(sub, queryDomain) {
 				continue
 			}
+			r.addProvenance(sub, result.Source)
 			mu.Lock()
 			if _, exists := allSubs[sub]; !exists {
 				allSubs[sub] = struct{}{}
 				r.stats.AddFound(result.Source)
-				if !r.options.Resolve && !r.options.Scrape && !r.options.Permute &&
-					!r.options.Bruteforce && !r.options.CertGrab && depth == 0 {
-					r.outputResult(sub, result.Source, "", 0, "")
-					r.reportSubdomains = append(r.reportSubdomains, output.SubdomainEntry{Name: sub, Source: result.Source})
-				}
 			}
 			mu.Unlock()
 		}
@@ -780,7 +1007,7 @@ func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[s
 		wg.Add(1)
 		go func(s sources.Source) {
 			defer wg.Done()
-			s.Run(ctx, domain, results)
+			s.Run(ctx, queryDomain, results)
 		}(source)
 	}
 
@@ -792,6 +1019,7 @@ func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[s
 		output.PrintInfo("Passive enumeration found %d unique subdomains", len(allSubs))
 	}
 
+	r.passiveCache[queryDomain] = cloneSubdomainSet(allSubs)
 	return allSubs
 }
 
@@ -888,7 +1116,7 @@ func (r *Runner) runDNSEnum(ctx context.Context, subdomains []string) {
 	if !r.options.Silent {
 		output.PrintInfo("Running DNS enumeration on %d hosts...", len(subdomains))
 	}
-	dnsChan := active.EnumerateDNS(ctx, subdomains, r.options.Threads)
+	dnsChan := active.EnumerateDNSWithResolvers(ctx, subdomains, r.options.Threads, r.options.Resolvers)
 	for record := range dnsChan {
 		if r.options.JSON {
 			data, _ := json.Marshal(record)
@@ -1796,8 +2024,16 @@ func countHighRiskVulns(findings []output.VulnEntry) int {
 // ──────────── OUTPUT ────────────
 
 func (r *Runner) outputResult(subdomain, source, ip string, status int, title string) {
+	risk, tags := profileSubdomain(subdomain, r.sourceCount(subdomain))
 	if r.options.JSON {
 		data := map[string]interface{}{"subdomain": subdomain, "source": source}
+		if sources := r.sourceList(subdomain); len(sources) > 0 {
+			data["sources"] = sources
+			data["source_count"] = len(sources)
+		}
+		data["risk_score"] = risk
+		data["tags"] = tags
+		data["interesting"] = risk >= 20
 		if ip != "" {
 			data["ip"] = ip
 		}
@@ -1810,11 +2046,15 @@ func (r *Runner) outputResult(subdomain, source, ip string, status int, title st
 		j, _ := json.Marshal(data)
 		r.writeOutput(string(j))
 	} else if r.options.CSV {
-		r.writeOutput(fmt.Sprintf("%s,%s,%s,%d,%s", subdomain, source, ip, status, title))
+		r.writeOutput(fmt.Sprintf("%s,%s,%s,%d,%s,%d,%s", subdomain, source, ip, status, title, risk, strings.Join(tags, "|")))
 	} else if r.options.Silent {
 		fmt.Println(subdomain)
 	} else {
-		output.PrintFound(subdomain, source)
+		displaySource := source
+		if risk >= 20 && len(tags) > 0 {
+			displaySource = fmt.Sprintf("%s score=%d tags=%s", source, risk, strings.Join(tags, ","))
+		}
+		output.PrintFound(subdomain, displaySource)
 	}
 }
 

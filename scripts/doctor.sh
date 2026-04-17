@@ -24,8 +24,49 @@ need_command() {
   fi
 }
 
+go_bin_dir() {
+  local gobin gopath
+  gobin="$(go env GOBIN 2>/dev/null || true)"
+  if [ -n "$gobin" ]; then
+    printf '%s\n' "$gobin"
+    return
+  fi
+  gopath="$(go env GOPATH 2>/dev/null || true)"
+  if [ -n "$gopath" ]; then
+    printf '%s/bin\n' "$gopath"
+  fi
+}
+
+check_did_finder() {
+  if command -v did_finder >/dev/null 2>&1; then
+    pass "did_finder: $(command -v did_finder)"
+    return
+  fi
+
+  warn "did_finder is not installed or not in PATH"
+  if [ -x "$PWD/did_finder" ]; then
+    warn "Project-local binary found: $PWD/did_finder (run ./did_finder or make install)"
+  fi
+
+  if command -v go >/dev/null 2>&1; then
+    local gobin
+    gobin="$(go_bin_dir)"
+    if [ -n "$gobin" ]; then
+      if [ -x "$gobin/did_finder" ]; then
+        warn "did_finder exists in Go bin but is not on PATH: $gobin/did_finder"
+      else
+        warn "Install did_finder with: make install"
+      fi
+      case ":$PATH:" in
+        *":$gobin:"*) ;;
+        *) warn "Add Go bin to PATH: export PATH=\"\$PATH:$gobin\"" ;;
+      esac
+    fi
+  fi
+}
+
 need_command go "Go"
-need_command did_finder "did_finder"
+check_did_finder
 need_command ollama "Ollama"
 need_command nuclei "Nuclei"
 need_command curl "curl"

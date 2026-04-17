@@ -2,25 +2,23 @@ package active
 
 import (
 	"context"
-	"net"
 	"sync"
-	"time"
 )
 
 // Resolve concurrently resolves a list of subdomains
 // and returns a channel of live subdomains
 func Resolve(ctx context.Context, subdomains []string, threads int) <-chan string {
+	return ResolveWithResolvers(ctx, subdomains, threads, nil)
+}
+
+func ResolveWithResolvers(ctx context.Context, subdomains []string, threads int, resolvers []string) <-chan string {
 	live := make(chan string)
 	jobs := make(chan string, len(subdomains))
 
-	// Custom resolver with short per-query timeout
-	resolver := &net.Resolver{
-		PreferGo: true,
-		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-			d := net.Dialer{Timeout: 2 * time.Second}
-			return d.DialContext(ctx, "udp", "8.8.8.8:53")
-		},
+	if threads <= 0 {
+		threads = 1
 	}
+	dnsClient := NewDNSClient(resolvers)
 
 	var wg sync.WaitGroup
 
@@ -30,9 +28,7 @@ func Resolve(ctx context.Context, subdomains []string, threads int) <-chan strin
 		go func() {
 			defer wg.Done()
 			for sub := range jobs {
-				queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-				ips, err := resolver.LookupHost(queryCtx, sub)
-				cancel()
+				ips, err := dnsClient.LookupHost(ctx, sub)
 				if err == nil && len(ips) > 0 {
 					live <- sub
 				}
@@ -45,7 +41,8 @@ func Resolve(ctx context.Context, subdomains []string, threads int) <-chan strin
 		for _, sub := range subdomains {
 			select {
 			case <-ctx.Done():
-				break
+				close(jobs)
+				return
 			case jobs <- sub:
 			}
 		}

@@ -27,12 +27,15 @@ type HTMLReportData struct {
 }
 
 type SubdomainEntry struct {
-	Name   string
-	Source string
-	IPs    string
-	Status int
-	Title  string
-	Techs  string
+	Name        string
+	Source      string
+	SourceCount int
+	Risk        int
+	Tags        string
+	IPs         string
+	Status      int
+	Title       string
+	Techs       string
 }
 
 type TakeoverEntry struct {
@@ -307,7 +310,7 @@ tr:hover td{background:#1a2332}
 
 	// Subdomains table
 	fmt.Fprintln(f, `<h2>📋 Discovered Subdomains</h2>`)
-	fmt.Fprintln(f, `<table><tr><th>Subdomain</th><th>Source</th><th>IPs</th><th>Status</th><th>Title</th><th>Technologies</th></tr>`)
+	fmt.Fprintln(f, `<table><tr><th>Subdomain</th><th>Sources</th><th>Risk</th><th>Tags</th><th>IPs</th><th>Status</th><th>Title</th><th>Technologies</th></tr>`)
 	for _, s := range data.Subdomains {
 		statusBadge := ""
 		if s.Status > 0 {
@@ -319,8 +322,15 @@ tr:hover td{background:#1a2332}
 			}
 			statusBadge = fmt.Sprintf(`<span class="badge %s">%d</span>`, color, s.Status)
 		}
-		fmt.Fprintf(f, "<tr><td>%s</td><td><span class=\"badge badge-blue\">%s</span></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n",
+		riskColor := "badge-green"
+		if s.Risk >= 50 {
+			riskColor = "badge-red"
+		} else if s.Risk >= 20 {
+			riskColor = "badge-yellow"
+		}
+		fmt.Fprintf(f, "<tr><td>%s</td><td><span class=\"badge badge-blue\">%s</span></td><td><span class=\"badge %s\">%d</span></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n",
 			html.EscapeString(s.Name), html.EscapeString(s.Source),
+			riskColor, s.Risk, html.EscapeString(s.Tags),
 			html.EscapeString(s.IPs), statusBadge,
 			html.EscapeString(s.Title), html.EscapeString(s.Techs))
 	}

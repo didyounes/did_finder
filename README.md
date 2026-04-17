@@ -63,6 +63,11 @@
 go install github.com/yel-joul/did_finder/cmd/did_finder@latest
 ```
 
+If your shell cannot find `did_finder` after install, add your Go bin directory to `PATH`:
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
+```
+
 ### Build Locally
 ```bash
 git clone https://github.com/yel-joul/did_finder.git
@@ -98,6 +103,9 @@ did_finder -d example.com
 # Multiple domains from file
 did_finder -dL domains.txt
 
+# Lists may contain domains, subdomains, URLs, blank lines, and # comments
+did_finder -dL targets.txt
+
 # Pipe from stdin
 echo "example.com" | did_finder
 ```
@@ -131,6 +139,12 @@ did_finder -d example.com -resolve -rL resolvers.txt
 
 # Exclude patterns
 did_finder -d example.com -exclude "*.staging.*,*.dev.*"
+
+# Passive source control and confidence filtering
+did_finder -list-sources
+did_finder -d example.com -sources crtsh,certspotter,urlscan
+did_finder -d example.com -exclude-sources commoncrawl,wayback -min-sources 2
+did_finder -d example.com -interesting -json
 
 # Resume interrupted scan
 did_finder -d example.com -all    # Ctrl+C to interrupt
@@ -204,6 +218,12 @@ did_finder -tools-recommend -all -tools-check
 | `-report` | Generate HTML report | |
 | `-config` | Config file path | |
 | `-proxy` | HTTP/SOCKS5 proxy | |
+| `-rate` | Passive source request rate limit | `5` |
+| `-list-sources` | List passive source names and exit | `false` |
+| `-sources` | Comma-separated passive sources to include | |
+| `-exclude-sources` | Comma-separated passive sources to skip | |
+| `-min-sources` | Keep only hosts found by at least N sources | `1` |
+| `-interesting` | Keep only high-signal hosts based on labels/source confidence | `false` |
 | `-ollama` | Analyze findings with local Ollama | `false` |
 | `-ollama-host` | Ollama host URL | `http://127.0.0.1:11434` |
 | `-ollama-model` | Ollama model name | `llama3.2:1b` |

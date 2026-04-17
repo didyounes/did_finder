@@ -11,11 +11,16 @@ import (
 
 // ReverseDNSFromCIDR performs reverse DNS lookups on IP ranges found for the domain
 func ReverseDNSFromCIDR(ctx context.Context, domain string, threads int) ([]string, error) {
+	return ReverseDNSFromCIDRWithResolvers(ctx, domain, threads, nil)
+}
+
+func ReverseDNSFromCIDRWithResolvers(ctx context.Context, domain string, threads int, resolvers []string) ([]string, error) {
 	var results []string
 	seen := make(map[string]struct{})
+	dnsClient := NewDNSClient(resolvers)
 
 	// Step 1: Resolve the base domain to get its IP(s)
-	ips, err := net.DefaultResolver.LookupHost(ctx, domain)
+	ips, err := dnsClient.LookupHost(ctx, domain)
 	if err != nil {
 		return nil, fmt.Errorf("could not resolve %s: %w", domain, err)
 	}
@@ -37,7 +42,7 @@ func ReverseDNSFromCIDR(ctx context.Context, domain string, threads int) ([]stri
 		for i := 1; i < 255; i++ {
 			targetIP := fmt.Sprintf("%s.%d", cidrBase, i)
 
-			names, err := net.DefaultResolver.LookupAddr(ctx, targetIP)
+			names, err := dnsClient.LookupAddr(ctx, targetIP)
 			if err != nil || len(names) == 0 {
 				continue
 			}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"net"
 	"sync"
 )
 
@@ -24,11 +23,16 @@ func NewWildcardDetector() *WildcardDetector {
 // Detect queries 3 random subdomains that almost certainly don't exist.
 // If they all resolve to the same IP set, it's a wildcard.
 func (w *WildcardDetector) Detect(ctx context.Context, domain string) bool {
+	return w.DetectWithResolvers(ctx, domain, nil)
+}
+
+func (w *WildcardDetector) DetectWithResolvers(ctx context.Context, domain string, resolvers []string) bool {
 	var allIPs [][]string
+	dnsClient := NewDNSClient(resolvers)
 
 	for i := 0; i < 3; i++ {
 		random := fmt.Sprintf("%s.%s", randomString(12), domain)
-		ips, err := net.DefaultResolver.LookupHost(ctx, random)
+		ips, err := dnsClient.LookupHost(ctx, random)
 		if err != nil || len(ips) == 0 {
 			return false // non-existent sub didn't resolve → no wildcard
 		}

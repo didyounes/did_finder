@@ -6,41 +6,48 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/yel-joul/did_finder/internal/active"
 	"github.com/yel-joul/did_finder/internal/ai"
+	"github.com/yel-joul/did_finder/internal/utils"
 )
 
 type Options struct {
-	Domain       string
-	DomainList   string
-	Threads      int
-	Timeout      int
-	Verbose      bool
-	Silent       bool
-	OutputFile   string
-	JSON         bool
-	CSV          bool
-	Resolve      bool
-	Permute      bool
-	Scrape       bool
-	Probe        bool
-	Recursive    bool
-	RecurseDepth int
-	ZoneTransfer bool
-	Proxy        string
-	RateLimit    int
-	NoColor      bool
-	Takeover     bool
-	WAFDetect    bool
-	CertGrab     bool
-	DNSEnum      bool
-	Bruteforce   bool
-	WordlistPath string
-	CIDR         bool
-	HTMLReport   string
-	ConfigPath   string
-	All          bool
+	Domain          string
+	DomainList      string
+	Threads         int
+	Timeout         int
+	Verbose         bool
+	Silent          bool
+	OutputFile      string
+	JSON            bool
+	CSV             bool
+	Resolve         bool
+	Permute         bool
+	Scrape          bool
+	Probe           bool
+	Recursive       bool
+	RecurseDepth    int
+	ZoneTransfer    bool
+	Proxy           string
+	RateLimit       int
+	Sources         string
+	ExcludeSources  string
+	ListSources     bool
+	MinSources      int
+	InterestingOnly bool
+	NoColor         bool
+	Takeover        bool
+	WAFDetect       bool
+	CertGrab        bool
+	DNSEnum         bool
+	Bruteforce      bool
+	WordlistPath    string
+	CIDR            bool
+	HTMLReport      string
+	ConfigPath      string
+	All             bool
 
 	// v3.0 new features
 	PortScan      bool
@@ -95,6 +102,7 @@ type Options struct {
 
 	// Populated at runtime
 	Domains         []string
+	TargetSeeds     map[string][]string
 	Resolvers       []string
 	ExcludePatterns []string
 }
@@ -119,7 +127,12 @@ func ParseOptions() *Options {
 	flag.IntVar(&options.RecurseDepth, "depth", 2, "Recursion depth")
 	flag.BoolVar(&options.ZoneTransfer, "zt", false, "Attempt DNS zone transfer")
 	flag.StringVar(&options.Proxy, "proxy", "", "HTTP/SOCKS5 proxy URL")
-	flag.IntVar(&options.RateLimit, "rate", 50, "Max requests per second")
+	flag.IntVar(&options.RateLimit, "rate", 5, "Max passive source requests per second")
+	flag.StringVar(&options.Sources, "sources", "", "Comma-separated passive sources to include (use -list-sources)")
+	flag.StringVar(&options.ExcludeSources, "exclude-sources", "", "Comma-separated passive sources to skip")
+	flag.BoolVar(&options.ListSources, "list-sources", false, "List passive source names and exit")
+	flag.IntVar(&options.MinSources, "min-sources", 1, "Only keep subdomains seen from at least this many sources")
+	flag.BoolVar(&options.InterestingOnly, "interesting", false, "Only keep high-signal subdomains based on labels and source confidence")
 	flag.BoolVar(&options.NoColor, "nc", false, "Disable colors")
 	flag.BoolVar(&options.Takeover, "takeover", false, "Check for subdomain takeover")
 	flag.BoolVar(&options.WAFDetect, "waf", false, "Detect WAF on live hosts")
@@ -177,6 +190,10 @@ func ParseOptions() *Options {
 
 	flag.Parse()
 
+	options.TargetSeeds = make(map[string][]string)
+	seenDomains := make(map[string]struct{})
+	seenSeeds := make(map[string]struct{})
+
 	// -all enables everything
 	if options.All {
 		options.Resolve = true
@@ -208,23 +225,22 @@ func ParseOptions() *Options {
 
 	// Collect domains
 	if options.Domain != "" {
-		options.Domains = append(options.Domains, options.Domain)
+		addTargets(options, parseTargetValues(options.Domain), seenDomains, seenSeeds)
 	}
 	if options.DomainList != "" {
-		domains, err := readLines(options.DomainList)
+		domains, err := readTargetLines(options.DomainList)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading domain list: %s\n", err)
 		} else {
-			options.Domains = append(options.Domains, domains...)
+			addTargets(options, domains, seenDomains, seenSeeds)
 		}
 	}
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 		for scanner.Scan() {
-			if line := scanner.Text(); line != "" {
-				options.Domains = append(options.Domains, line)
-			}
+			addTargets(options, parseTargetValues(scanner.Text()), seenDomains, seenSeeds)
 		}
 	}
 
@@ -320,6 +336,9 @@ func (o *Options) EnabledToolModules() []string {
 	if o.Curl {
 		modules = append(modules, "curl")
 	}
+	if o.InterestingOnly {
+		modules = append(modules, "interesting")
+	}
 	if len(modules) == 0 {
 		modules = append(modules, "passive")
 	}
@@ -334,10 +353,76 @@ func readLines(path string) ([]string, error) {
 	defer file.Close()
 	var lines []string
 	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for scanner.Scan() {
-		if line := scanner.Text(); line != "" {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if idx := strings.Index(line, " #"); idx >= 0 {
+			line = strings.TrimSpace(line[:idx])
+		}
+		if line != "" {
 			lines = append(lines, line)
 		}
 	}
 	return lines, scanner.Err()
+}
+
+func readTargetLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var targets []string
+	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+	for scanner.Scan() {
+		targets = append(targets, parseTargetValues(scanner.Text())...)
+	}
+	return targets, scanner.Err()
+}
+
+func parseTargetValues(value string) []string {
+	var targets []string
+	for _, field := range strings.FieldsFunc(value, func(r rune) bool {
+		return r == ',' || unicode.IsSpace(r)
+	}) {
+		field = strings.TrimSpace(field)
+		if field == "" {
+			continue
+		}
+		if strings.HasPrefix(field, "#") {
+			break
+		}
+		host := utils.NormalizeHostname(field)
+		if host != "" {
+			targets = append(targets, host)
+		}
+	}
+	return targets
+}
+
+func addTargets(options *Options, targets []string, seenDomains, seenSeeds map[string]struct{}) {
+	for _, target := range targets {
+		host := utils.NormalizeHostname(target)
+		if host == "" {
+			continue
+		}
+		root := utils.RegistrableDomain(host)
+		if root == "" {
+			continue
+		}
+		if _, exists := seenDomains[root]; !exists {
+			seenDomains[root] = struct{}{}
+			options.Domains = append(options.Domains, root)
+		}
+		seedKey := root + "\x00" + host
+		if _, exists := seenSeeds[seedKey]; !exists {
+			seenSeeds[seedKey] = struct{}{}
+			options.TargetSeeds[root] = append(options.TargetSeeds[root], host)
+		}
+	}
 }

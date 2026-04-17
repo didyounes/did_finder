@@ -11,6 +11,11 @@ import (
 func main() {
 	options := runner.ParseOptions()
 
+	if options.ListSources {
+		runner.PrintSourceList(os.Stdout)
+		return
+	}
+
 	if options.ToolsRequested() {
 		err := tools.PrintCatalog(os.Stdout, tools.ListOptions{
 			Category:  options.ToolsCategory,

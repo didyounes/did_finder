@@ -20,8 +20,17 @@ type DNSRecord struct {
 
 // EnumerateDNS performs full DNS enumeration on subdomains
 func EnumerateDNS(ctx context.Context, subdomains []string, threads int) <-chan DNSRecord {
+	return EnumerateDNSWithResolvers(ctx, subdomains, threads, nil)
+}
+
+func EnumerateDNSWithResolvers(ctx context.Context, subdomains []string, threads int, resolvers []string) <-chan DNSRecord {
 	results := make(chan DNSRecord)
 	jobs := make(chan string, len(subdomains))
+
+	if threads <= 0 {
+		threads = 1
+	}
+	dnsClient := NewDNSClient(resolvers)
 
 	var wg sync.WaitGroup
 
@@ -33,7 +42,7 @@ func EnumerateDNS(ctx context.Context, subdomains []string, threads int) <-chan 
 				record := DNSRecord{Subdomain: sub}
 
 				// A records
-				ips, err := net.DefaultResolver.LookupHost(ctx, sub)
+				ips, err := dnsClient.LookupHost(ctx, sub)
 				if err == nil {
 					for _, ip := range ips {
 						parsed := net.ParseIP(ip)
@@ -48,13 +57,13 @@ func EnumerateDNS(ctx context.Context, subdomains []string, threads int) <-chan 
 				}
 
 				// CNAME
-				cname, err := net.DefaultResolver.LookupCNAME(ctx, sub)
+				cname, err := dnsClient.LookupCNAME(ctx, sub)
 				if err == nil && cname != "" && cname != sub+"." {
 					record.CNAME = strings.TrimSuffix(cname, ".")
 				}
 
 				// MX
-				mxRecords, err := net.DefaultResolver.LookupMX(ctx, sub)
+				mxRecords, err := dnsClient.LookupMX(ctx, sub)
 				if err == nil {
 					for _, mx := range mxRecords {
 						record.MX = append(record.MX, strings.TrimSuffix(mx.Host, "."))
@@ -62,7 +71,7 @@ func EnumerateDNS(ctx context.Context, subdomains []string, threads int) <-chan 
 				}
 
 				// NS
-				nsRecords, err := net.DefaultResolver.LookupNS(ctx, sub)
+				nsRecords, err := dnsClient.LookupNS(ctx, sub)
 				if err == nil {
 					for _, ns := range nsRecords {
 						record.NS = append(record.NS, strings.TrimSuffix(ns.Host, "."))
@@ -70,7 +79,7 @@ func EnumerateDNS(ctx context.Context, subdomains []string, threads int) <-chan 
 				}
 
 				// TXT
-				txtRecords, err := net.DefaultResolver.LookupTXT(ctx, sub)
+				txtRecords, err := dnsClient.LookupTXT(ctx, sub)
 				if err == nil {
 					record.TXT = txtRecords
 				}
@@ -84,7 +93,12 @@ func EnumerateDNS(ctx context.Context, subdomains []string, threads int) <-chan 
 
 	go func() {
 		for _, sub := range subdomains {
-			jobs <- sub
+			select {
+			case <-ctx.Done():
+				close(jobs)
+				return
+			case jobs <- sub:
+			}
 		}
 		close(jobs)
 	}()
