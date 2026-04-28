@@ -7,15 +7,17 @@
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#usage">Usage</a> •
+  <a href="#architecture">Architecture</a> •
   <a href="#configuration">Configuration</a> •
-  <a href="#modules">Modules</a>
+  <a href="#modules">Modules</a> •
+  <a href="#quality--verification">Quality</a>
 </p>
 
 ---
 
 ## Features
 
-**did_finder** is an advanced subdomain enumeration tool built in Go. It combines **15 passive sources** with **12 active modules** for comprehensive subdomain discovery and security analysis.
+**did_finder** is an advanced subdomain enumeration and active intelligence tool built in Go. It combines **15 passive providers** with **18 active and enrichment modules** for scalable discovery, validation, and security analysis.
 
 ### Passive Sources
 | Source | API Key Required |
@@ -24,6 +26,13 @@
 | CertSpotter, Anubis, ThreatCrowd, RapidDNS, URLScan | ❌ |
 | BufferOver, CommonCrawl | ❌ |
 | VirusTotal, SecurityTrails, Shodan, GitHub | ✅ |
+
+### Runtime & Reliability
+- **Context-aware networking** — passive providers and active network phases receive cancellable `context.Context` deadlines.
+- **Provider fan-in architecture** — each passive source owns and closes its own result channel; the runner safely multiplexes all provider streams.
+- **Token bucket rate limiting** — passive HTTP requests are governed by `golang.org/x/time/rate` instead of ad hoc sleeps.
+- **Pipeline-safe output** — clean findings go to stdout; banners, progress, warnings, summaries, and debug logs go to stderr.
+- **Resume support** — interrupted scans can be checkpointed and resumed with `-resume`.
 
 ### Active Modules
 - 🔍 **DNS Resolution** — Filter alive subdomains
@@ -48,6 +57,7 @@
 ### Output & Reporting
 - 📊 **HTML Report** — Beautiful dark-themed report with all findings
 - 📝 **JSON / CSV / Plain** — Machine-readable output formats
+- 🔀 **Clean Streams** — Results on stdout, operational logs on stderr
 - 🤖 **Local Ollama Analysis** — Optional AI triage and next-step recommendations
 - 🧰 **Bug Bounty Tool Catalog** — Embedded `awesome-bugbounty-tools` search, recommendations, and PATH checks
 - 💾 **Resume** — Checkpoint and resume interrupted scans
@@ -129,6 +139,9 @@ did_finder -d example.com -csv -o results.csv
 
 # Silent mode (subdomains only, great for piping)
 did_finder -d example.com -silent | httpx
+
+# Keep operational logs separate from machine-readable results
+did_finder -d example.com -json 2> scan.log | jq .
 ```
 
 ### Advanced
@@ -260,6 +273,36 @@ did_finder -tools-recommend -all -tools-check
 
 ---
 
+## Architecture
+
+`did_finder` keeps passive discovery, active validation, orchestration, output, and configuration separated under `internal/`:
+
+```text
+cmd/did_finder/          CLI entrypoint
+internal/runner/         Scan orchestration, passive fan-in, resume handling
+internal/sources/        Passive providers and shared rate-limited HTTP client
+internal/active/         DNS, HTTP, takeover, WAF, CORS, redirect, screenshots, and enrichment modules
+internal/limits/         Token bucket limiter interfaces and implementations
+internal/logging/        Stderr-oriented logger contract
+internal/output/         Result formatting, reports, progress, and summaries
+internal/utils/          Config loading, normalization, webhooks, and shared helpers
+```
+
+Passive providers implement a small interface:
+
+```go
+type Provider interface {
+	Name() string
+	Run(ctx context.Context, domain string) (<-chan Result, error)
+}
+```
+
+Each provider creates and closes its own result channel. The runner starts providers concurrently, fans their result streams into one channel, and honors context cancellation while avoiding shared-channel ownership bugs.
+
+The passive HTTP path uses a shared token bucket limiter. `-rate` controls passive source request rate, while `-t` remains the concurrency ceiling for worker-heavy active modules.
+
+---
+
 ## Configuration
 
 Create `~/.config/did_finder/config.yaml` or `~/.did_finder.yaml`:
@@ -347,6 +390,30 @@ Runs Nuclei against discovered targets and folds JSONL findings into terminal ou
 
 ### Advanced Curl Mode
 Runs `curl` against live targets with compression, path-preserving requests, TLS ignore for recon, timing metrics, redirect counts, remote IPs, content types, and status codes. `-curl-export` writes a replayable shell script for live targets, Nuclei findings, and open redirect checks so manual validation can start from exact commands.
+
+---
+
+## Quality & Verification
+
+Run the full local verification sweep before pushing changes:
+
+```bash
+go test ./...
+go test -race ./...
+go vet ./...
+git diff --check
+make build
+make test
+make doctor
+```
+
+For an end-to-end smoke test with the freshly built local binary:
+
+```bash
+PATH="$PWD:$PATH" make smoke
+```
+
+`make smoke` exercises passive discovery, local Ollama analysis, and HTML report generation against `example.com`. Optional active modules such as screenshots, Nuclei, and curl require their companion tools to be available in `PATH`; `make doctor` reports that environment readiness.
 
 ---
 
