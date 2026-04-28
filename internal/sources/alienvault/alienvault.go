@@ -15,34 +15,42 @@ func (s *Source) Name() string {
 	return "alienvault"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://otx.alienvault.com/api/v1/indicators/domain/%s/passive_dns", domain), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
+	go func() {
+		defer close(results)
 
-	var data struct {
-		PassiveDNS []struct {
-			Hostname string `json:"hostname"`
-		} `json:"passive_dns"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-
-	for _, entry := range data.PassiveDNS {
-		if entry.Hostname != "" {
-			results <- sources.Result{Source: s.Name(), Value: entry.Hostname}
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://otx.alienvault.com/api/v1/indicators/domain/%s/passive_dns", domain), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
 		}
-	}
+
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
+
+		var data struct {
+			PassiveDNS []struct {
+				Hostname string `json:"hostname"`
+			} `json:"passive_dns"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		for _, entry := range data.PassiveDNS {
+			if entry.Hostname != "" {
+				results <- sources.Result{Source: s.Name(), Value: entry.Hostname}
+			}
+		}
+	}()
+
+	return results, nil
 }

@@ -15,37 +15,45 @@ func (s *Source) Name() string {
 	return "certspotter"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.certspotter.com/v1/issuances?domain=%s&include_subdomains=true&expand=dns_names", domain), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
+	go func() {
+		defer close(results)
 
-	if resp.StatusCode != http.StatusOK {
-		results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("unexpected status code: %d", resp.StatusCode)}
-		return
-	}
-
-	var data []struct {
-		DNSNames []string `json:"dns_names"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-
-	for _, entry := range data {
-		for _, name := range entry.DNSNames {
-			results <- sources.Result{Source: s.Name(), Value: name}
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.certspotter.com/v1/issuances?domain=%s&include_subdomains=true&expand=dns_names", domain), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
 		}
-	}
+
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("unexpected status code: %d", resp.StatusCode)}
+			return
+		}
+
+		var data []struct {
+			DNSNames []string `json:"dns_names"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		for _, entry := range data {
+			for _, name := range entry.DNSNames {
+				results <- sources.Result{Source: s.Name(), Value: name}
+			}
+		}
+	}()
+
+	return results, nil
 }

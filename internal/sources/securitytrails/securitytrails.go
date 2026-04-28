@@ -17,43 +17,51 @@ func (s *Source) Name() string {
 	return "securitytrails"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	if s.APIKey == "" {
-		return
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	req, err := http.NewRequestWithContext(ctx, "GET",
-		fmt.Sprintf("https://api.securitytrails.com/v1/domain/%s/subdomains", domain), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	req.Header.Set("APIKEY", s.APIKey)
+	go func() {
+		defer close(results)
 
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("status %d", resp.StatusCode)}
-		return
-	}
-
-	var data struct {
-		Subdomains []string `json:"subdomains"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-
-	for _, sub := range data.Subdomains {
-		if sub != "" {
-			results <- sources.Result{Source: s.Name(), Value: sub + "." + domain}
+		if s.APIKey == "" {
+			return
 		}
-	}
+
+		req, err := http.NewRequestWithContext(ctx, "GET",
+			fmt.Sprintf("https://api.securitytrails.com/v1/domain/%s/subdomains", domain), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		req.Header.Set("APIKEY", s.APIKey)
+
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("status %d", resp.StatusCode)}
+			return
+		}
+
+		var data struct {
+			Subdomains []string `json:"subdomains"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		for _, sub := range data.Subdomains {
+			if sub != "" {
+				results <- sources.Result{Source: s.Name(), Value: sub + "." + domain}
+			}
+		}
+	}()
+
+	return results, nil
 }

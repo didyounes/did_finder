@@ -8,49 +8,94 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/yel-joul/did_finder/internal/limits"
 )
 
 const defaultUserAgent = "did_finder/3.1"
 
-var throttle = struct {
-	sync.Mutex
-	interval time.Duration
-	last     time.Time
+type HTTPClient struct {
+	Client  *http.Client
+	Limiter limits.Limiter
+	Retries int
+}
+
+var defaultHTTP = struct {
+	sync.RWMutex
+	client *HTTPClient
 }{
-	interval: 200 * time.Millisecond,
+	client: NewHTTPClient(http.DefaultClient, limits.NewTokenBucket(5, 1)),
 }
 
 func SetRateLimit(perSecond int) {
 	if perSecond <= 0 {
 		perSecond = 1
 	}
-	throttle.Lock()
-	throttle.interval = time.Second / time.Duration(perSecond)
-	throttle.Unlock()
+	SetLimiter(limits.NewTokenBucket(float64(perSecond), perSecond))
+}
+
+func SetLimiter(limiter limits.Limiter) {
+	if limiter == nil {
+		limiter = limits.NewTokenBucket(1, 1)
+	}
+	defaultHTTP.Lock()
+	defaultHTTP.client.Limiter = limiter
+	defaultHTTP.Unlock()
+}
+
+func NewHTTPClient(client *http.Client, limiter limits.Limiter) *HTTPClient {
+	if client == nil {
+		client = http.DefaultClient
+	}
+	return &HTTPClient{
+		Client:  client,
+		Limiter: limiter,
+		Retries: 3,
+	}
 }
 
 func Do(req *http.Request) (*http.Response, error) {
-	return DoWithClient(http.DefaultClient, req)
+	defaultHTTP.RLock()
+	client := *defaultHTTP.client
+	defaultHTTP.RUnlock()
+	return (&client).Do(req)
 }
 
 func DoWithClient(client *http.Client, req *http.Request) (*http.Response, error) {
+	defaultHTTP.RLock()
+	limiter := defaultHTTP.client.Limiter
+	defaultHTTP.RUnlock()
+	return NewHTTPClient(client, limiter).Do(req)
+}
+
+func (h *HTTPClient) Do(req *http.Request) (*http.Response, error) {
+	if h == nil {
+		h = NewHTTPClient(http.DefaultClient, nil)
+	}
+	client := h.Client
 	if client == nil {
 		client = http.DefaultClient
 	}
 	if req.Header.Get("User-Agent") == "" {
 		req.Header.Set("User-Agent", defaultUserAgent)
 	}
+	retries := h.Retries
+	if retries <= 0 {
+		retries = 3
+	}
 
 	var lastErr error
-	for attempt := 0; attempt < 3; attempt++ {
-		if err := waitForTurn(req.Context()); err != nil {
-			return nil, err
+	for attempt := 0; attempt < retries; attempt++ {
+		if h.Limiter != nil {
+			if err := h.Limiter.Wait(req.Context()); err != nil {
+				return nil, err
+			}
 		}
 
 		resp, err := client.Do(req.Clone(req.Context()))
 		if err != nil {
 			lastErr = err
-			if req.Context().Err() != nil || attempt == 2 {
+			if req.Context().Err() != nil || attempt == retries-1 {
 				return nil, err
 			}
 			if err := sleepContext(req.Context(), backoffDelay(attempt, nil)); err != nil {
@@ -59,7 +104,7 @@ func DoWithClient(client *http.Client, req *http.Request) (*http.Response, error
 			continue
 		}
 
-		if !shouldRetry(resp.StatusCode) || attempt == 2 {
+		if !shouldRetry(resp.StatusCode) || attempt == retries-1 {
 			return resp, nil
 		}
 
@@ -73,25 +118,6 @@ func DoWithClient(client *http.Client, req *http.Request) (*http.Response, error
 		return nil, lastErr
 	}
 	return nil, fmt.Errorf("request failed after retries")
-}
-
-func waitForTurn(ctx context.Context) error {
-	throttle.Lock()
-	defer throttle.Unlock()
-
-	now := time.Now()
-	wait := throttle.last.Add(throttle.interval).Sub(now)
-	if wait > 0 {
-		timer := time.NewTimer(wait)
-		select {
-		case <-ctx.Done():
-			timer.Stop()
-			return ctx.Err()
-		case <-timer.C:
-		}
-	}
-	throttle.last = time.Now()
-	return nil
 }
 
 func shouldRetry(status int) bool {

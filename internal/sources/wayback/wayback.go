@@ -16,28 +16,36 @@ func (s *Source) Name() string {
 	return "waybackarchive"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("http://web.archive.org/cdx/search/cdx?url=*.%s/*&output=json&collapse=urlkey&fl=original", domain), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
+	go func() {
+		defer close(results)
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("http://web.archive.org/cdx/search/cdx?url=*.%s/*&output=json&collapse=urlkey&fl=original", domain), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
 
-	subs := utils.ExtractSubdomains(string(body), domain)
-	for _, sub := range subs {
-		results <- sources.Result{Source: s.Name(), Value: sub}
-	}
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		subs := utils.ExtractSubdomains(string(body), domain)
+		for _, sub := range subs {
+			results <- sources.Result{Source: s.Name(), Value: sub}
+		}
+	}()
+
+	return results, nil
 }

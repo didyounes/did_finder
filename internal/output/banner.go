@@ -1,6 +1,9 @@
 package output
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 // ANSI color codes
 const (
@@ -32,26 +35,25 @@ func PrintBanner() {
 ` + Dim + `              v3.0 — github.com/yel-joul/did_finder` + Reset + `
 `
 
-	fmt.Println(banner)
+	fmt.Fprintln(os.Stderr, banner)
 }
 
 func PrintInfo(format string, args ...interface{}) {
-	fmt.Printf(Cyan+"[INF] "+Reset+format+"\n", args...)
+	fmt.Fprintf(os.Stderr, Cyan+"[INF] "+Reset+format+"\n", args...)
 }
 
 func PrintWarning(format string, args ...interface{}) {
-	fmt.Printf(Yellow+"[WRN] "+Reset+format+"\n", args...)
+	fmt.Fprintf(os.Stderr, Yellow+"[WRN] "+Reset+format+"\n", args...)
 }
 
 func PrintError(format string, args ...interface{}) {
-	fmt.Printf(Red+"[ERR] "+Reset+format+"\n", args...)
+	fmt.Fprintf(os.Stderr, Red+"[ERR] "+Reset+format+"\n", args...)
 }
 
 func PrintSuccess(format string, args ...interface{}) {
-	fmt.Printf(Green+"[+] "+Reset+format+"\n", args...)
+	fmt.Fprintf(os.Stderr, Green+"[+] "+Reset+format+"\n", args...)
 }
 
 func PrintFound(subdomain, source string) {
 	fmt.Printf(Green+"%s"+Reset+" "+Dim+"[%s]"+Reset+"\n", subdomain, source)
 }
-

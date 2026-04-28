@@ -1,6 +1,9 @@
 package sources
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 type Result struct {
 	Type   string
@@ -9,7 +12,13 @@ type Result struct {
 	Error  error
 }
 
-type Source interface {
-	Run(ctx context.Context, domain string, results chan Result)
+type Provider interface {
 	Name() string
+	Run(ctx context.Context, domain string) (<-chan Result, error)
+}
+
+type Source = Provider
+
+type Doer interface {
+	Do(req *http.Request) (*http.Response, error)
 }

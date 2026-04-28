@@ -17,41 +17,49 @@ func (s *Source) Name() string {
 	return "bufferover"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://tls.bufferover.run/dns?q=.%s", domain), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
+	go func() {
+		defer close(results)
 
-	var data struct {
-		Results []string `json:"Results"`
-	}
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://tls.bufferover.run/dns?q=.%s", domain), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
 
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
 
-	seen := make(map[string]struct{})
-	for _, entry := range data.Results {
-		// Format is "ip,hostname" or just comma-separated values
-		parts := strings.Split(entry, ",")
-		for _, part := range parts {
-			part = utils.NormalizeHostname(part)
-			if utils.BelongsToDomain(part, domain) {
-				if _, exists := seen[part]; !exists {
-					seen[part] = struct{}{}
-					results <- sources.Result{Source: s.Name(), Value: part}
+		var data struct {
+			Results []string `json:"Results"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		seen := make(map[string]struct{})
+		for _, entry := range data.Results {
+			// Format is "ip,hostname" or just comma-separated values
+			parts := strings.Split(entry, ",")
+			for _, part := range parts {
+				part = utils.NormalizeHostname(part)
+				if utils.BelongsToDomain(part, domain) {
+					if _, exists := seen[part]; !exists {
+						seen[part] = struct{}{}
+						results <- sources.Result{Source: s.Name(), Value: part}
+					}
 				}
 			}
 		}
-	}
+	}()
+
+	return results, nil
 }

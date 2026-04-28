@@ -17,43 +17,51 @@ func (s *Source) Name() string {
 	return "shodan"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	if s.APIKey == "" {
-		return // Silently skip if no API key
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	req, err := http.NewRequestWithContext(ctx, "GET",
-		fmt.Sprintf("https://api.shodan.io/dns/domain/%s?key=%s", domain, s.APIKey), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+	go func() {
+		defer close(results)
 
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("shodan API returned %d", resp.StatusCode)}
-		return
-	}
-
-	var data struct {
-		Domain     string `json:"domain"`
-		Subdomains []string `json:"subdomains"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-
-	for _, sub := range data.Subdomains {
-		if sub != "" {
-			results <- sources.Result{Source: s.Name(), Value: fmt.Sprintf("%s.%s", sub, domain)}
+		if s.APIKey == "" {
+			return // Silently skip if no API key
 		}
-	}
+
+		req, err := http.NewRequestWithContext(ctx, "GET",
+			fmt.Sprintf("https://api.shodan.io/dns/domain/%s?key=%s", domain, s.APIKey), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != 200 {
+			results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("shodan API returned %d", resp.StatusCode)}
+			return
+		}
+
+		var data struct {
+			Domain     string   `json:"domain"`
+			Subdomains []string `json:"subdomains"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		for _, sub := range data.Subdomains {
+			if sub != "" {
+				results <- sources.Result{Source: s.Name(), Value: fmt.Sprintf("%s.%s", sub, domain)}
+			}
+		}
+	}()
+
+	return results, nil
 }

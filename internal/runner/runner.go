@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/yel-joul/did_finder/internal/active"
 	"github.com/yel-joul/did_finder/internal/ai"
+	"github.com/yel-joul/did_finder/internal/logging"
 	"github.com/yel-joul/did_finder/internal/output"
 	"github.com/yel-joul/did_finder/internal/sources"
 	"github.com/yel-joul/did_finder/internal/utils"
@@ -213,7 +213,7 @@ func (r *Runner) Run() error {
 			output.PrintInfo("Minimum source confidence: %d", r.options.MinSources)
 		}
 		r.printEnabledFeatures()
-		fmt.Println()
+		fmt.Fprintln(os.Stderr)
 	}
 
 	if r.options.CSV {
@@ -968,52 +968,31 @@ func (r *Runner) runPassive(ctx context.Context, domain string, depth int) map[s
 		return cloneSubdomainSet(cached)
 	}
 
-	results := make(chan sources.Result)
 	allSubs := make(map[string]struct{})
-	var mu sync.Mutex
 
 	passiveSources := r.passiveSources()
+	logger := logging.New(os.Stderr, r.options.Verbose && !r.options.Silent)
 
-	var wg sync.WaitGroup
-	done := make(chan struct{})
-
-	go func() {
-		for result := range results {
-			if result.Error != nil {
-				if r.options.Verbose && !r.options.Silent {
-					output.PrintError("%s: %s", result.Source, result.Error)
-				}
-				continue
+	for result := range RunPassive(ctx, queryDomain, passiveSources, logger) {
+		if result.Error != nil {
+			if r.options.Verbose && !r.options.Silent {
+				output.PrintError("%s: %s", result.Source, result.Error)
 			}
-			if result.Value == "" {
-				continue
-			}
-			sub := utils.NormalizeHostname(result.Value)
-			if !utils.BelongsToDomain(sub, queryDomain) {
-				continue
-			}
-			r.addProvenance(sub, result.Source)
-			mu.Lock()
-			if _, exists := allSubs[sub]; !exists {
-				allSubs[sub] = struct{}{}
-				r.stats.AddFound(result.Source)
-			}
-			mu.Unlock()
+			continue
 		}
-		close(done)
-	}()
-
-	for _, source := range passiveSources {
-		wg.Add(1)
-		go func(s sources.Source) {
-			defer wg.Done()
-			s.Run(ctx, queryDomain, results)
-		}(source)
+		if result.Value == "" {
+			continue
+		}
+		sub := utils.NormalizeHostname(result.Value)
+		if !utils.BelongsToDomain(sub, queryDomain) {
+			continue
+		}
+		r.addProvenance(sub, result.Source)
+		if _, exists := allSubs[sub]; !exists {
+			allSubs[sub] = struct{}{}
+			r.stats.AddFound(result.Source)
+		}
 	}
-
-	wg.Wait()
-	close(results)
-	<-done
 
 	if !r.options.Silent && depth == 0 {
 		output.PrintInfo("Passive enumeration found %d unique subdomains", len(allSubs))

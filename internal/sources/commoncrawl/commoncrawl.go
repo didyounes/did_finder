@@ -18,58 +18,66 @@ func (s *Source) Name() string {
 	return "commoncrawl"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	// Get the latest index
-	indexes, err := getIndexes(ctx)
-	if err != nil || len(indexes) == 0 {
-		results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("failed to get indexes: %w", err)}
-		return
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	// Use the latest index only to avoid excessive requests
-	latestIndex := indexes[0].API
+	go func() {
+		defer close(results)
 
-	req, err := http.NewRequestWithContext(ctx, "GET",
-		fmt.Sprintf("%s?url=*.%s&output=json&fl=url", latestIndex, domain), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
-
-	seen := make(map[string]struct{})
-	scanner := bufio.NewScanner(resp.Body)
-	// Increase buffer for long lines
-	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" {
-			continue
+		// Get the latest index
+		indexes, err := getIndexes(ctx)
+		if err != nil || len(indexes) == 0 {
+			results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("failed to get indexes: %w", err)}
+			return
 		}
 
-		var entry struct {
-			URL string `json:"url"`
-		}
-		if err := json.Unmarshal([]byte(line), &entry); err != nil {
-			continue
+		// Use the latest index only to avoid excessive requests
+		latestIndex := indexes[0].API
+
+		req, err := http.NewRequestWithContext(ctx, "GET",
+			fmt.Sprintf("%s?url=*.%s&output=json&fl=url", latestIndex, domain), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
 		}
 
-		// Extract hostname from URL
-		host := utils.NormalizeHostname(extractHost(entry.URL))
-		if utils.BelongsToDomain(host, domain) {
-			if _, exists := seen[host]; !exists {
-				seen[host] = struct{}{}
-				results <- sources.Result{Source: s.Name(), Value: host}
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
+
+		seen := make(map[string]struct{})
+		scanner := bufio.NewScanner(resp.Body)
+		// Increase buffer for long lines
+		scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+
+		for scanner.Scan() {
+			line := scanner.Text()
+			if line == "" {
+				continue
+			}
+
+			var entry struct {
+				URL string `json:"url"`
+			}
+			if err := json.Unmarshal([]byte(line), &entry); err != nil {
+				continue
+			}
+
+			// Extract hostname from URL
+			host := utils.NormalizeHostname(extractHost(entry.URL))
+			if utils.BelongsToDomain(host, domain) {
+				if _, exists := seen[host]; !exists {
+					seen[host] = struct{}{}
+					results <- sources.Result{Source: s.Name(), Value: host}
+				}
 			}
 		}
-	}
+	}()
+
+	return results, nil
 }
 
 type indexEntry struct {

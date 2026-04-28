@@ -2,17 +2,18 @@ package output
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 )
 
 // Progress provides real-time progress tracking for scan phases
 type Progress struct {
-	mu       sync.Mutex
-	total    int
-	current  int
-	phase    string
-	enabled  bool
+	mu      sync.Mutex
+	total   int
+	current int
+	phase   string
+	enabled bool
 }
 
 // NewProgress creates a new progress tracker
@@ -52,7 +53,7 @@ func (p *Progress) Done() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	// Clear the progress line
-	fmt.Printf("\r%s\r", strings.Repeat(" ", 80))
+	fmt.Fprintf(os.Stderr, "\r%s\r", strings.Repeat(" ", 80))
 }
 
 func (p *Progress) render() {
@@ -69,7 +70,7 @@ func (p *Progress) render() {
 
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", barWidth-filled)
 
-	fmt.Printf("\r%s[%s]%s %s%s %d/%d (%.0f%%)%s  ",
+	fmt.Fprintf(os.Stderr, "\r%s[%s]%s %s%s %d/%d (%.0f%%)%s  ",
 		Cyan, bar, Reset,
 		Dim, p.phase, p.current, p.total, pct, Reset)
 }

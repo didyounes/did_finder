@@ -27,7 +27,7 @@ import (
 
 type passiveSourceSpec struct {
 	Name        string
-	Source      sources.Source
+	Provider    sources.Provider
 	RequiresKey bool
 	HasKey      bool
 }
@@ -37,21 +37,21 @@ func passiveSourceSpecs(config *utils.Config) []passiveSourceSpec {
 		config = &utils.Config{}
 	}
 	return []passiveSourceSpec{
-		{Name: "crt.sh", Source: &crtsh.Source{}, HasKey: true},
-		{Name: "hackertarget", Source: &hackertarget.Source{}, HasKey: true},
-		{Name: "alienvault", Source: &alienvault.Source{}, HasKey: true},
-		{Name: "waybackarchive", Source: &wayback.Source{}, HasKey: true},
-		{Name: "certspotter", Source: &certspotter.Source{}, HasKey: true},
-		{Name: "anubisdb", Source: &anubis.Source{}, HasKey: true},
-		{Name: "threatcrowd", Source: &threatcrowd.Source{}, HasKey: true},
-		{Name: "rapiddns", Source: &rapiddns.Source{}, HasKey: true},
-		{Name: "urlscan", Source: &urlscan.Source{}, HasKey: true},
-		{Name: "bufferover", Source: &bufferover.Source{}, HasKey: true},
-		{Name: "commoncrawl", Source: &commoncrawl.Source{}, HasKey: true},
-		{Name: "virustotal", Source: &virustotal.Source{APIKey: config.VirusTotal}, RequiresKey: true, HasKey: config.VirusTotal != ""},
-		{Name: "securitytrails", Source: &securitytrails.Source{APIKey: config.SecurityTrails}, RequiresKey: true, HasKey: config.SecurityTrails != ""},
-		{Name: "shodan", Source: &shodan.Source{APIKey: config.Shodan}, RequiresKey: true, HasKey: config.Shodan != ""},
-		{Name: "github", Source: &github.Source{APIKey: config.GitHub}, RequiresKey: true, HasKey: config.GitHub != ""},
+		{Name: "crt.sh", Provider: &crtsh.Source{}, HasKey: true},
+		{Name: "hackertarget", Provider: &hackertarget.Source{}, HasKey: true},
+		{Name: "alienvault", Provider: &alienvault.Source{}, HasKey: true},
+		{Name: "waybackarchive", Provider: &wayback.Source{}, HasKey: true},
+		{Name: "certspotter", Provider: &certspotter.Source{}, HasKey: true},
+		{Name: "anubisdb", Provider: &anubis.Source{}, HasKey: true},
+		{Name: "threatcrowd", Provider: &threatcrowd.Source{}, HasKey: true},
+		{Name: "rapiddns", Provider: &rapiddns.Source{}, HasKey: true},
+		{Name: "urlscan", Provider: &urlscan.Source{}, HasKey: true},
+		{Name: "bufferover", Provider: &bufferover.Source{}, HasKey: true},
+		{Name: "commoncrawl", Provider: &commoncrawl.Source{}, HasKey: true},
+		{Name: "virustotal", Provider: &virustotal.Source{APIKey: config.VirusTotal}, RequiresKey: true, HasKey: config.VirusTotal != ""},
+		{Name: "securitytrails", Provider: &securitytrails.Source{APIKey: config.SecurityTrails}, RequiresKey: true, HasKey: config.SecurityTrails != ""},
+		{Name: "shodan", Provider: &shodan.Source{APIKey: config.Shodan}, RequiresKey: true, HasKey: config.Shodan != ""},
+		{Name: "github", Provider: &github.Source{APIKey: config.GitHub}, RequiresKey: true, HasKey: config.GitHub != ""},
 	}
 }
 
@@ -75,11 +75,11 @@ func validateSourceSelection(options *Options) error {
 	return nil
 }
 
-func (r *Runner) passiveSources() []sources.Source {
+func (r *Runner) passiveSources() []sources.Provider {
 	include, _ := parseSourceSet(r.options.Sources)
 	exclude, _ := parseSourceSet(r.options.ExcludeSources)
 
-	var selected []sources.Source
+	var selected []sources.Provider
 	for _, spec := range passiveSourceSpecs(r.config) {
 		name := sourceCanonical(spec.Name)
 		if include != nil {
@@ -93,7 +93,7 @@ func (r *Runner) passiveSources() []sources.Source {
 		if spec.RequiresKey && !spec.HasKey {
 			continue
 		}
-		selected = append(selected, spec.Source)
+		selected = append(selected, spec.Provider)
 	}
 	return selected
 }

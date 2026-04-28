@@ -16,43 +16,51 @@ func (s *Source) Name() string {
 	return "crt.sh"
 }
 
-func (s *Source) Run(ctx context.Context, domain string, results chan sources.Result) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://crt.sh/?q=%%25.%s&output=json", domain), nil)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result, error) {
+	results := make(chan sources.Result)
 
-	resp, err := sources.Do(req)
-	if err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
-	defer resp.Body.Close()
+	go func() {
+		defer close(results)
 
-	if resp.StatusCode != http.StatusOK {
-		results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("unexpected status code: %d", resp.StatusCode)}
-		return
-	}
+		req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://crt.sh/?q=%%25.%s&output=json", domain), nil)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
 
-	var data []struct {
-		NameValue string `json:"name_value"`
-	}
+		resp, err := sources.Do(req)
+		if err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+		defer resp.Body.Close()
 
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		results <- sources.Result{Source: s.Name(), Error: err}
-		return
-	}
+		if resp.StatusCode != http.StatusOK {
+			results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("unexpected status code: %d", resp.StatusCode)}
+			return
+		}
 
-	for _, entry := range data {
-		for _, sub := range strings.Split(entry.NameValue, "\n") {
-			sub = strings.TrimSpace(sub)
-			if strings.HasPrefix(sub, "*.") {
-				sub = strings.TrimPrefix(sub, "*.")
-			}
-			if sub != "" {
-				results <- sources.Result{Source: s.Name(), Value: sub}
+		var data []struct {
+			NameValue string `json:"name_value"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			results <- sources.Result{Source: s.Name(), Error: err}
+			return
+		}
+
+		for _, entry := range data {
+			for _, sub := range strings.Split(entry.NameValue, "\n") {
+				sub = strings.TrimSpace(sub)
+				if strings.HasPrefix(sub, "*.") {
+					sub = strings.TrimPrefix(sub, "*.")
+				}
+				if sub != "" {
+					results <- sources.Result{Source: s.Name(), Value: sub}
+				}
 			}
 		}
-	}
+	}()
+
+	return results, nil
 }
