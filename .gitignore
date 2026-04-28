@@ -8,13 +8,24 @@ did_finder
 # Output files
 output/
 screenshots/
+response/
+responses/
+reports/
 *.txt
 !README.md
+*.log
+*.jsonl
+*.har
+*.pcap
+*.pcapng
 report.html
 
 # State files
 .did_finder_state.json
 resume.cfg
+*.sqlite
+*.sqlite3
+*.db
 
 # IDE / Editor
 .vscode/
@@ -33,3 +44,7 @@ coverage.out
 # Config (may contain API keys)
 config.yaml
 .did_finder.yaml
+.env
+.env.*
+*.local.yaml
+*.secrets.yaml
