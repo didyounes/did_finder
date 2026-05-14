@@ -12,7 +12,7 @@ import (
 	"github.com/yel-joul/did_finder/internal/limits"
 )
 
-const defaultUserAgent = "did_finder/3.1"
+const defaultUserAgent = "did_finder/3.0"
 
 type HTTPClient struct {
 	Client  *http.Client

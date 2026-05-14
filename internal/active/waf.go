@@ -193,7 +193,7 @@ func detectSingle(ctx context.Context, client *http.Client, subdomain string) *W
 		if err != nil {
 			continue
 		}
-		req.Header.Set("User-Agent", "did_finder/2.0")
+		req.Header.Set("User-Agent", "did_finder/3.0")
 
 		resp, err := client.Do(req)
 		if err != nil {
@@ -221,7 +221,7 @@ func detectSingle(ctx context.Context, client *http.Client, subdomain string) *W
 		if err != nil {
 			continue
 		}
-		req2.Header.Set("User-Agent", "did_finder/2.0")
+		req2.Header.Set("User-Agent", "did_finder/3.0")
 
 		resp2, err := client.Do(req2)
 		if err != nil {

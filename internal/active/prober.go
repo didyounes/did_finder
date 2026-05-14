@@ -99,7 +99,7 @@ func probeSingle(ctx context.Context, client *http.Client, subdomain, url string
 	if err != nil {
 		return result
 	}
-	req.Header.Set("User-Agent", "did_finder/2.0")
+	req.Header.Set("User-Agent", "did_finder/3.0")
 
 	resp, err := client.Do(req)
 	if err != nil {

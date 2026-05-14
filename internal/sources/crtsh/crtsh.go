@@ -36,7 +36,7 @@ func (s *Source) Run(ctx context.Context, domain string) (<-chan sources.Result,
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			results <- sources.Result{Source: s.Name(), Error: fmt.Errorf("unexpected status code: %d", resp.StatusCode)}
+			// crt.sh is occasionally unreliable (502/404); treat as empty result rather than fatal error
 			return
 		}
 

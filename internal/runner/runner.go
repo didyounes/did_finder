@@ -2026,7 +2026,7 @@ func (r *Runner) outputResult(subdomain, source, ip string, status int, title st
 		r.writeOutput(string(j))
 	} else if r.options.CSV {
 		r.writeOutput(fmt.Sprintf("%s,%s,%s,%d,%s,%d,%s", subdomain, source, ip, status, title, risk, strings.Join(tags, "|")))
-	} else if r.options.Silent {
+	} else if r.options.Silent && !r.options.JSON && !r.options.CSV {
 		fmt.Println(subdomain)
 	} else {
 		displaySource := source

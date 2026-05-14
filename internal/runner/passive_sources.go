@@ -18,7 +18,7 @@ import (
 	"github.com/yel-joul/did_finder/internal/sources/rapiddns"
 	"github.com/yel-joul/did_finder/internal/sources/securitytrails"
 	"github.com/yel-joul/did_finder/internal/sources/shodan"
-	"github.com/yel-joul/did_finder/internal/sources/threatcrowd"
+
 	"github.com/yel-joul/did_finder/internal/sources/urlscan"
 	"github.com/yel-joul/did_finder/internal/sources/virustotal"
 	"github.com/yel-joul/did_finder/internal/sources/wayback"
@@ -43,8 +43,7 @@ func passiveSourceSpecs(config *utils.Config) []passiveSourceSpec {
 		{Name: "waybackarchive", Provider: &wayback.Source{}, HasKey: true},
 		{Name: "certspotter", Provider: &certspotter.Source{}, HasKey: true},
 		{Name: "anubisdb", Provider: &anubis.Source{}, HasKey: true},
-		{Name: "threatcrowd", Provider: &threatcrowd.Source{}, HasKey: true},
-		{Name: "rapiddns", Provider: &rapiddns.Source{}, HasKey: true},
+			{Name: "rapiddns", Provider: &rapiddns.Source{}, HasKey: true},
 		{Name: "urlscan", Provider: &urlscan.Source{}, HasKey: true},
 		{Name: "bufferover", Provider: &bufferover.Source{}, HasKey: true},
 		{Name: "commoncrawl", Provider: &commoncrawl.Source{}, HasKey: true},
@@ -138,7 +137,6 @@ func canonicalSourceName(value string) (string, bool) {
 		"certspotter":    "certspotter",
 		"anubis":         "anubisdb",
 		"anubisdb":       "anubisdb",
-		"threatcrowd":    "threatcrowd",
 		"rapiddns":       "rapiddns",
 		"urlscan":        "urlscan",
 		"bufferover":     "bufferover",

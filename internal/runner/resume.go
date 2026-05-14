@@ -18,6 +18,9 @@ type ScanState struct {
 
 const stateFile = ".did_finder_state.json"
 
+// stateFilePermissions ensures the state file is only readable by the owner
+const stateFilePermissions = 0600
+
 // SaveState writes the current scan state to disk
 func SaveState(state *ScanState) error {
 	state.UpdatedAt = time.Now()
@@ -25,7 +28,7 @@ func SaveState(state *ScanState) error {
 	if err != nil {
 		return fmt.Errorf("marshal state: %w", err)
 	}
-	return os.WriteFile(stateFile, data, 0644)
+	return os.WriteFile(stateFile, data, stateFilePermissions)
 }
 
 // LoadState reads a saved scan state from disk
